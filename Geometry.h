@@ -2,6 +2,8 @@
 // Created by Isabelle Hallman on 2018-09-17.
 //
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/gtx/normal.hpp"
 #include "glm/glm.hpp"
 
 struct Vertex;
@@ -12,18 +14,25 @@ struct Ray;
 
 
 struct Vertex {
-    Vertex(float xIn, float yIn, float zIn, float wIn)
-            : x(xIn), y(yIn), z(zIn), w(wIn) {
+    Vertex(float x, float y, float z, float wIn)
+            : w(wIn) {
         position = glm::vec3(x, y, z);
     }
 
-    float x, y, z, w;
+    float w;
     glm::vec3 position;
 };
 
 struct Direction {
-    Direction(float xIn, float yIn, float zIn) : x(xIn), y(yIn), z(zIn) { }
-    float x, y, z;
+    Direction(float x, float y, float z) {
+        vector = glm::vec3(x, y, z);
+    }
+
+    Direction(glm::vec3 inVector) {
+        vector = inVector;
+    }
+
+    glm::vec3 vector;
 };
 
 struct ColorDbl {
@@ -38,6 +47,7 @@ struct Triangle {
         computeNormal();
     }
 
+    // TODO: Implement Moller Trumbore!
     bool rayIntersection(Ray &arg) {
         return true;
     }
@@ -47,14 +57,15 @@ struct Triangle {
     Direction normal;
 
     void computeNormal() {
-        glm::cross((v1.position - v2.position), (v1.position - v3.position));
-        normal = Direction(.0, .0, .0);
+        glm::vec3 normalVec = glm::normalize(glm::cross(v1.position - v2.position, v1.position - v3.position));
+        normal = Direction(normalVec);
     }
 };
 
 struct Ray {
     Ray(Vertex* startIn, Vertex* endIn, ColorDbl* colorIn)
             : startPoint(startIn), endPoint(endIn), color(colorIn), endPointTriangle(nullptr) { }
+
     Vertex* startPoint, * endPoint;
     ColorDbl* color;
     Triangle* endPointTriangle;
