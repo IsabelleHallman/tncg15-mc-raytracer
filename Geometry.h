@@ -57,7 +57,7 @@ struct Triangle {
     Direction normal;
 
     void computeNormal() {
-        glm::vec3 normalVec = glm::normalize(glm::cross(v1.position - v2.position, v1.position - v3.position));
+        glm::vec3 normalVec = glm::normalize(glm::cross(v1.position - v2.position, v3.position - v2.position));
         normal = Direction(normalVec);
     }
 };
