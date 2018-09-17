@@ -8,8 +8,8 @@
 
 int main() {
     Vertex v1 = Vertex(.0, .0, .0, .0);
-    Vertex v2 = Vertex(.1, .1, .1, .1);
-    Vertex v3 = Vertex(.2, .2, .2, .2);
+    Vertex v2 = Vertex(.0, .0, .1, .1);
+    Vertex v3 = Vertex(.1, .0, .0, .2);
     ColorDbl color = ColorDbl(1., 1., 1.);
     Ray myRay = Ray(&v1, &v2, &color);
 
@@ -18,8 +18,6 @@ int main() {
     Scene myScene = Scene(triangles);
 
     Triangle& intersectedTriangle = myScene.findIntersectedTriangle(myRay);
-
-    std::cout << intersectedTriangle.v2.x << std::endl;
-
+    std::cout << intersectedTriangle.normal.vector.y << std::endl;
     return 0;
 }
