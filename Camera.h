@@ -59,9 +59,9 @@ public:
     void render() {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                Vertex thisPixelMiddlePosition = Vertex(bottomLeft.position + glm::vec3(0.0,
+                Vertex thisPixelMiddlePosition = Vertex(topLeft.position + glm::vec3(0.0,
                                                                               pixelSize / 2 + x * pixelSize,
-                                                                              pixelSize / 2 + y * pixelSize));
+                                                                              - (pixelSize / 2 + y * pixelSize)));
                 Vertex* activeEye = frontEyeActive ? &frontEye : &backEye;
                 Ray thisRay = Ray(&thisPixelMiddlePosition, activeEye);
                 ColorDbl thisColor = scene->findIntersectedTriangle(thisRay).color;
