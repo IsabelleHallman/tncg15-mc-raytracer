@@ -7,43 +7,24 @@
 #include <iostream>
 #include <vector>
 
-int main() {
-    Vertex v1 = Vertex(.0, .0, .0, .0);
-    Vertex v2 = Vertex(.0, .0, .1, .1);
-    Vertex v3 = Vertex(.1, .0, .0, .2);
-    ColorDbl color = ColorDbl(1., 1., 1.);
-    Ray myRay = Ray(&v1, &v2);
-
-    std::list<Triangle> triangles = {Triangle(v1, v2, v3, color)};
-    Scene myScene = Scene(triangles);
-
-    Triangle& intersectedTriangle = myScene.findIntersectedTriangle(myRay);
-    //std::cout << intersectedTriangle.normal.vector.y << std::endl;
-
-    Camera camera = Camera(&myScene);
-    camera.render();
-    camera.createImage();
-    return 0;
-}
-
 Scene generateTestScene() {
     std::vector<Vertex> sceneVertices =
-    {
-        Vertex(0.0, 6.0, 5.0, 1.0),
-        Vertex(0.0, 6.0, -5.0f, 1.0),
-        Vertex(10.0, 6.0, 5.0, 1.0),
-        Vertex(10.0, 6.0, -5.0f, 1.0),
-        Vertex(13.0, 0.0, 5.0, 1.0),
-        Vertex(13.0, 0.0, -5.0f, 1.0),
-        Vertex(10.0, -6.0f, 5.0, 1.0),
-        Vertex(10.0, -6.0f, -5.0f, 1.0),
-        Vertex(0.0, -6.0f, 5.0, 1.0),
-        Vertex(0.0, -6.0f, -5.0f, 1.0),
-        Vertex(-3.0f, 0.0, 5.0, 1.0),
-        Vertex(-3.0f, 0.0, -5.0f, 1.0),
-        Vertex(5.0, 0.0, 5.0, 1.0),
-        Vertex(5.0, 0.0, -5.0f, 1.0)
-    };
+            {
+                    Vertex(0.0, 6.0, 5.0, 1.0),
+                    Vertex(0.0, 6.0, -5.0f, 1.0),
+                    Vertex(10.0, 6.0, 5.0, 1.0),
+                    Vertex(10.0, 6.0, -5.0f, 1.0),
+                    Vertex(13.0, 0.0, 5.0, 1.0),
+                    Vertex(13.0, 0.0, -5.0f, 1.0),
+                    Vertex(10.0, -6.0f, 5.0, 1.0),
+                    Vertex(10.0, -6.0f, -5.0f, 1.0),
+                    Vertex(0.0, -6.0f, 5.0, 1.0),
+                    Vertex(0.0, -6.0f, -5.0f, 1.0),
+                    Vertex(-3.0f, 0.0, 5.0, 1.0),
+                    Vertex(-3.0f, 0.0, -5.0f, 1.0),
+                    Vertex(5.0, 0.0, 5.0, 1.0),
+                    Vertex(5.0, 0.0, -5.0f, 1.0)
+            };
 
     ColorDbl red = ColorDbl(1.0, 0.0, 0.0);
     ColorDbl green = ColorDbl(0.0, 1.0, 0.0);
@@ -82,3 +63,23 @@ Scene generateTestScene() {
 
     return Scene(sceneTriangles);
 }
+
+int main() {
+    Vertex v1 = Vertex(.0, .0, .0, .0);
+    Vertex v2 = Vertex(.0, .0, .1, .1);
+    Vertex v3 = Vertex(.1, .0, .0, .2);
+    ColorDbl color = ColorDbl(1., 1., 1.);
+    Ray myRay = Ray(&v1, &v2);
+
+    std::list<Triangle> triangles = {Triangle(v1, v2, v3, color)};
+    Scene myScene = generateTestScene();
+
+    Triangle& intersectedTriangle = myScene.findIntersectedTriangle(myRay);
+    //std::cout << intersectedTriangle.normal.vector.y << std::endl;
+
+    Camera camera = Camera(&myScene);
+    camera.render();
+    camera.createImage();
+    return 0;
+}
+
