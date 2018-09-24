@@ -71,11 +71,9 @@ int main() {
     ColorDbl color = ColorDbl(1., 1., 1.);
     Ray myRay = Ray(&v1, &v2);
 
-    std::list<Triangle> triangles = {Triangle(v1, v2, v3, color)};
     Scene myScene = generateTestScene();
 
     Triangle& intersectedTriangle = myScene.findIntersectedTriangle(myRay);
-    //std::cout << intersectedTriangle.normal.vector.y << std::endl;
 
     Camera camera = Camera(&myScene);
     camera.render();
