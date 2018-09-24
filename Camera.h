@@ -9,12 +9,36 @@
 #include <iostream>
 #include "Scene.h"
 struct Pixel {
-    // TODO: Possible to fix this ugly constructor?
-    Pixel() : color(ColorDbl()), pixelMiddlePosition(Vertex()), ray(Ray()) { std::cout << "kom hit i alla fall" << std::endl;}
+    Pixel() : color(ColorDbl()), pixelMiddlePosition(Vertex()), ray(Ray()) { }
+
+    Pixel(ColorDbl colorIn, Vertex pixelMiddlePositionIn, Ray rayIn)
+            : color(colorIn), pixelMiddlePosition(pixelMiddlePositionIn), ray(rayIn) { }
 
     ColorDbl color;
     Ray ray; //TODO: implement possible to have more rays per pixel
     Vertex pixelMiddlePosition;
+};
+
+template <typename T> class Array2D {
+public:
+    size_t width, height;
+    T * array;
+
+    Array2D(size_t widthIn, size_t heightIn) : width(widthIn), height(heightIn) {
+        array = new T[width * height];
+    }
+
+    T* get(size_t x, size_t y) {
+        return &(array[getPosition(x, y)]);
+    }
+
+    void set(T value, size_t x, size_t y) {
+        array[getPosition(x, y)] = value;
+    }
+
+    size_t getPosition(size_t x, size_t y) {
+        return x + width * y;
+    }
 };
 
 class Camera {
@@ -28,18 +52,21 @@ public:
               topLeft(position + glm::vec3(0.0, - scale / 2, scale / 2)),
               topRight(position + glm::vec3(0.0, scale / 2, scale / 2)),
               bottomLeft(position + glm::vec3(0.0, - scale / 2, - scale / 2)),
-              bottomRight(position + glm::vec3(0.0, scale / 2, - scale / 2)) { }
+              bottomRight(position + glm::vec3(0.0, scale / 2, - scale / 2)),
+              sensor(Array2D<Pixel>(width, height)) { }
 
     // Launches a ray through each pixel one at a time
     void render() {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                sensor[x][y].pixelMiddlePosition = Vertex(topLeft.position + glm::vec3(0.0,
+                Vertex thisPixelMiddlePosition = Vertex(topLeft.position + glm::vec3(0.0,
                                                                               pixelSize / 2 + x * pixelSize,
                                                                               pixelSize / 2 + y * pixelSize));
                 Vertex* activeEye = frontEyeActive ? &frontEye : &backEye;
-                Camera.sensor[x][y].ray = Ray(activeEye, &sensor[x][y].pixelMiddlePosition);
-                sensor[x][y].color = scene->findIntersectedTriangle(sensor[x][y].ray).color;
+                Ray thisRay = Ray(activeEye, &thisPixelMiddlePosition);
+                ColorDbl thisColor = scene->findIntersectedTriangle(thisRay).color;
+                Pixel thisPixel = Pixel(thisColor, thisPixelMiddlePosition, thisRay);
+                sensor.set(thisPixel, x, y);
             }
         }
     }
@@ -51,23 +78,21 @@ public:
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 // TODO: truncate colors (divide by maxI for entire image)
-                 fputc((int) sensor[x][y].color.r * 255, f);
-                 fputc((int) sensor[x][y].color.g * 255, f);
-                 fputc((int) sensor[x][y].color.b * 255, f);
+                Pixel* thisPixel = sensor.get(x, y);
+                 fputc((int) thisPixel->color.r * 255, f);
+                 fputc((int) thisPixel->color.g * 255, f);
+                 fputc((int) thisPixel->color.b * 255, f);
             }
         }
         fclose(f);
     }
 
 private:
-
-
-    //TODO: Fix problem where sensor needs to be allocated dynamically
-    static const int width = 800;
-    static const int height = 800;
+    const int width = 800;
+    const int height = 800;
     bool frontEyeActive;
     Vertex frontEye, backEye;
-    static Pixel sensor[width][height];
+    Array2D<Pixel> sensor;
     float pixelSize;
     glm::vec3 position;
     Scene* scene;
