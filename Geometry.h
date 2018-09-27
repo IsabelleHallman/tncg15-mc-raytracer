@@ -147,12 +147,10 @@ struct Tetrahedron : MeshObject {
         Vertex v2 = Vertex(glm::vec3(-1.0f, 1.0, -1.0f) + position.position);
         Vertex v3 = Vertex(glm::vec3(-1.0f, -1.0f, 1.0) + position.position);
 
+        // TODO: Arbitrarily chosen order of vertices - normal might be wrong.
         triangles[0] = Triangle(v0, v1, v2, color);
         triangles[1] = Triangle(v0, v1, v3, color);
         triangles[2] = Triangle(v0, v2, v3, color);
         triangles[3] = Triangle(v1, v2, v3, color);
     }
 };
-
-
-
