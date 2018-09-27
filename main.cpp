@@ -64,7 +64,7 @@ Scene generateTestScene() {
     Scene scene = Scene(sceneTriangles);
 
     Vertex tetraPosition = Vertex(glm::vec3(8.0, 3.0, -4.0));
-    ColorDbl tetraColor = ColorDbl(0.0, 0.0, 0.0);
+    ColorDbl tetraColor = ColorDbl(.5, 1., 1.);
     scene.addTetrahedron(tetraPosition, tetraColor);
 
     return scene;

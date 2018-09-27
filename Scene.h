@@ -27,7 +27,7 @@ public:
     }
 
     void addTetrahedron(Vertex position, ColorDbl color) {
-        MeshObject tetrahedron = Tetrahedron();
+        MeshObject tetrahedron = Tetrahedron(position, color);
         objects.push_back(tetrahedron);
     }
 
