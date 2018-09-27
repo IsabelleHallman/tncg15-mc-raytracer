@@ -11,20 +11,30 @@
 
 class Scene {
 public:
-    Scene(std::list<Triangle>& trianglesIn) : triangles(trianglesIn) { }
+    Scene(std::list<Triangle>& trianglesIn) : walls(trianglesIn) { }
 
     Triangle& findIntersectedTriangle(Ray &ray) {
-        for (auto iterator = triangles.begin(); iterator != triangles.end(); ++iterator) {
-            if (iterator->rayIntersection(ray)) {
-                return *iterator;
-            }
+        for (auto iterator = walls.begin(); iterator != walls.end(); ++iterator) {
+            iterator->rayIntersection(ray);
         }
-        return triangles.front();
+
+        for (auto iterator = objects.begin(); iterator != objects.end(); ++iterator) {
+            iterator->rayIntersection(ray);
+        }
+
+        if (ray.endPointTriangle != nullptr) return *ray.endPointTriangle;
+        return walls.front();
     }
 
-private:
-    std::list<Triangle> triangles;
+    void addTetrahedron(Vertex position, ColorDbl color) {
+        MeshObject tetrahedron = Tetrahedron();
+        objects.push_back(tetrahedron);
+    }
 
+
+private:
+    std::list<Triangle> walls;
+    std::list<MeshObject> objects;
 };
 
 
