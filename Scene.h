@@ -9,6 +9,15 @@
 #include <list>
 #include "Geometry.h"
 
+struct Light {
+    Light(Triangle& areaLightIn, ColorDbl colorIn)
+            : areaLight(areaLightIn), color(colorIn) { }
+
+    ColorDbl color;
+    Triangle areaLight;
+};
+
+
 class Scene {
 public:
     Scene(std::list<Triangle>& trianglesIn)
@@ -36,7 +45,12 @@ public:
         objects.push_back(tetrahedron);
     }
 
+    void addLight(Triangle& areaLight, ColorDbl color) {
+        lights.push_back(Light(areaLight, color));
+    }
+
 private:
+    std::list<Light> lights;
     std::list<Triangle> walls;
     std::list<MeshObject> objects;
     ImplicitSphere sphere;

@@ -69,6 +69,10 @@ Scene generateTestScene() {
 
     scene.addTetrahedron(tetraPosition, tetraColor);
 
+    // TODO: Perhaps the light triangle should'nt overlap on of the roof triangles
+    Triangle lightTriangle = Triangle(sceneVertices.at(0), sceneVertices.at(10), sceneVertices.at(8), white);
+    scene.addLight(lightTriangle, white);
+
     return scene;
 }
 
