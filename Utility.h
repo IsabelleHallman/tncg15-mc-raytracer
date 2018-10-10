@@ -190,3 +190,11 @@ private:
     Vertex center;
     ColorDbl color;
 };
+
+struct Light {
+    Light(Triangle& areaLightIn, ColorDbl colorIn)
+            : areaLight(areaLightIn), color(colorIn) { }
+
+    ColorDbl color;
+    Triangle areaLight;
+};

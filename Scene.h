@@ -7,15 +7,7 @@
 
 
 #include <list>
-#include "Geometry.h"
-
-struct Light {
-    Light(Triangle& areaLightIn, ColorDbl colorIn)
-            : areaLight(areaLightIn), color(colorIn) { }
-
-    ColorDbl color;
-    Triangle areaLight;
-};
+#include "Utility.h"
 
 
 class Scene {
