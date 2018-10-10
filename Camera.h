@@ -66,7 +66,8 @@ public:
                                                                                      - (pixelSize / 2 + y * pixelSize)));
                 Vertex* activeEye = frontEyeActive ? &frontEye : &backEye;
                 Ray thisRay = Ray(&thisPixelMiddlePosition, activeEye);
-                ColorDbl thisColor = scene->findIntersectedTriangle(thisRay).color;
+                scene->findIntersectedTriangle(thisRay);
+                ColorDbl thisColor = *(thisRay.color);
                 Pixel thisPixel = Pixel(thisColor, thisPixelMiddlePosition, thisRay);
                 sensor.set(thisPixel, x, y);
             }

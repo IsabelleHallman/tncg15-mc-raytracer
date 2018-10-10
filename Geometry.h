@@ -49,7 +49,7 @@ struct ColorDbl {
 struct Ray {
     Ray(Vertex* startIn, Vertex* endIn)
             : startPoint(startIn), endPoint(endIn), color(nullptr), endPointTriangle(nullptr), tangentSpace(glm::vec3(0.0)) {
-        direction = Direction(startPoint->position - endPoint->position);
+        direction = Direction(glm::normalize(startPoint->position - endPoint->position));
     }
 
     Ray() : startPoint(nullptr), endPoint(nullptr), color(nullptr), endPointTriangle(nullptr), tangentSpace(glm::vec3(0.0)) {
@@ -154,26 +154,39 @@ struct Tetrahedron : MeshObject {
     }
 };
 
-struct ImplicitObject {
-    ImplicitObject() { }
+struct ImplicitSphere {
+
+public:
+    ImplicitSphere(float radiusIn, Vertex centerPos, ColorDbl colorIn)
+            : radius(radiusIn), center(centerPos), color(colorIn), radiusSquared(glm::pow(radiusIn, 2)) { }
 
     bool rayIntersection(Ray &ray) {
-        std::cout << "Raying in parent class" << std::endl;
+        float a = 1; // Dot product of rays direction with itself
+        glm::vec3 dirRayOriginToCenter = ray.startPoint->position - center.position;
+        float b = glm::dot((2.f * ray.direction.vector),dirRayOriginToCenter);
+        float c = glm::dot(dirRayOriginToCenter, dirRayOriginToCenter) - radiusSquared;
+
+        float discriminant = glm::pow(b/2, 2) - a*c;
+        if (discriminant < 0.f)
+            return false;
+
+        float d = -b/2 + glm::sqrt(discriminant);
+        if (d < 0.f)
+            d = -b/2 - glm::sqrt(discriminant);
+
+        if (d < 0.f)
+            return false;
+
         return true;
     }
 
-    virtual bool evaluate() {
-        std::cout << "Evaluating in parent class" << std::endl;
-        return true;
+    bool evaluate(glm::vec3 position) {
+        return (glm::pow(glm::length(position - center.position), 2) == radiusSquared);
     }
-};
 
-struct ImplicitCircle : ImplicitObject {
-    ImplicitCircle() : ImplicitObject() { }
-
-    // Override
-    bool evaluate() {
-        std::cout << "Evaluating in child class" << std::endl;
-        return true;
-    }
+private:
+    float radius;
+    float radiusSquared;
+    Vertex center;
+    ColorDbl color;
 };

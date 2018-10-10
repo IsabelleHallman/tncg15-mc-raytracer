@@ -11,36 +11,38 @@
 
 class Scene {
 public:
-    Scene(std::list<Triangle>& trianglesIn) : walls(trianglesIn) {
-        std::list<ImplicitObject*> implicits;
-        ImplicitCircle circle = ImplicitCircle();
-        circle.evaluate();
-        implicits.push_back(&circle);
-        implicits.front()->evaluate();
-    }
+    Scene(std::list<Triangle>& trianglesIn)
+            : walls(trianglesIn),
+              sphere(ImplicitSphere(1, Vertex(glm::vec3(6.f, 3.f, -3.f)), ColorDbl(0.2, 0.2, 0.2))) { }
 
     Triangle& findIntersectedTriangle(Ray &ray) {
         for (auto iterator = walls.begin(); iterator != walls.end(); ++iterator) {
             iterator->rayIntersection(ray);
         }
 
-        for (auto iterator = objects.begin(); iterator != objects.end(); ++iterator) {
-            std::cout << "Evaluating object " << (*iterator)->numTriangles << std::endl;
-            (*iterator)->rayIntersection(ray);
-        }
+        /*for (auto iterator = objects.begin(); iterator != objects.end(); ++iterator) {
+            (iterator)->rayIntersection(ray);
+        }*/
 
         if (ray.endPointTriangle != nullptr) return *ray.endPointTriangle;
+
+        // TODO: Sometimes the ray hits inbetween two triangles (where it should not be any space), rounding error?
+        ray.color = &defaultColor;
         return walls.front();
     }
 
     void addTetrahedron(Vertex position, ColorDbl color) {
         Tetrahedron tetrahedron = Tetrahedron(position, color);
-        objects.emplace_back(&tetrahedron);
+        objects.push_back(tetrahedron);
     }
 
 private:
     std::list<Triangle> walls;
-    std::list<std::unique_ptr<MeshObject>> objects;
+    std::list<MeshObject> objects;
+    ImplicitSphere sphere;
+
+    ColorDbl defaultColor = ColorDbl(1.0, 1.0, 1.0);
+
 };
 
 
