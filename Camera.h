@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <iostream>
 #include "Scene.h"
+#include "RayTrace.h"
 
 struct Pixel {
     Pixel() : color(ColorDbl()), pixelMiddlePosition(Vertex()), ray(Ray()) { }
