@@ -85,8 +85,6 @@ int main() {
 
     Scene myScene = generateTestScene();
 
-    Triangle& intersectedTriangle = myScene.findIntersectedTriangle(myRay);
-
     Camera camera = Camera(&myScene);
     camera.render();
     camera.createImage();

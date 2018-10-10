@@ -6,6 +6,11 @@
 #include "glm/gtx/normal.hpp"
 #include "glm/glm.hpp"
 
+const int LAMBERTIAN = 0;
+const int OREN_NAYAR = 1;
+const int PERFECT_REFLECTOR = 2;
+
+
 struct Vertex;
 struct Direction;
 struct ColorDbl;
@@ -50,10 +55,12 @@ struct Ray {
     Ray(Vertex* startIn, Vertex* endIn)
             : startPoint(startIn), endPoint(endIn), color(nullptr), endPointTriangle(nullptr), tangentSpace(glm::vec3(0.0)) {
         direction = Direction(glm::normalize(startPoint->position - endPoint->position));
+        hasIntersected = false;
     }
 
     Ray() : startPoint(nullptr), endPoint(nullptr), color(nullptr), endPointTriangle(nullptr), tangentSpace(glm::vec3(0.0)) {
         direction = Direction();
+        hasIntersected = false;
     }
 
     glm::vec3 tangentSpace;
@@ -61,6 +68,7 @@ struct Ray {
     Direction direction;
     ColorDbl* color;
     Triangle* endPointTriangle;
+    bool hasIntersected;
 };
 
 struct Triangle {
@@ -96,10 +104,11 @@ struct Triangle {
         float t = glm::dot(Q, edge2) * f;
 
         if (t > EPSILON) {
-            if (ray.endPointTriangle == nullptr || ray.tangentSpace.x > t) {
+            if (!ray.hasIntersected || ray.tangentSpace.x > t) {
                 ray.endPointTriangle = this;
                 ray.color = &(this->color);
                 ray.tangentSpace = glm::vec3(t, u, v);
+                ray.hasIntersected = true;
                 return true;
             }
         }
@@ -177,6 +186,10 @@ public:
         if (d < 0.f)
             return false;
 
+        ray.color = &color;
+        ray.tangentSpace = glm::vec3(d, 1, 1);
+        ray.hasIntersected = true;
+
         return true;
     }
 
@@ -197,4 +210,19 @@ struct Light {
 
     ColorDbl color;
     Triangle areaLight;
+};
+
+struct Material {
+
+    Material(ColorDbl colorIn, float alphaIn, float specularIn, int typeIn)
+            : color(colorIn), alpha(alphaIn), specular(specularIn), type(typeIn) {}
+
+    float getBRDF(Vertex x, Direction wIn, Direction wOut){
+        return 0;
+    }
+
+    ColorDbl color;
+    float alpha;
+    float specular;
+    int type;
 };

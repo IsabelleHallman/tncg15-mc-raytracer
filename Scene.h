@@ -14,22 +14,23 @@ class Scene {
 public:
     Scene(std::list<Triangle>& trianglesIn)
             : walls(trianglesIn),
-              sphere(ImplicitSphere(1, Vertex(glm::vec3(6.f, 3.f, -3.f)), ColorDbl(0.2, 0.2, 0.2))) { }
+              sphere(ImplicitSphere(1, Vertex(glm::vec3(6.f, -2.f, -3.f)), ColorDbl(0.2, 0.2, 0.2))) { }
 
-    Triangle& findIntersectedTriangle(Ray &ray) {
+    void findIntersectedTriangle(Ray &ray) {
         for (auto iterator = walls.begin(); iterator != walls.end(); ++iterator) {
             iterator->rayIntersection(ray);
         }
 
-        /*for (auto iterator = objects.begin(); iterator != objects.end(); ++iterator) {
+        for (auto iterator = objects.begin(); iterator != objects.end(); ++iterator) {
             (iterator)->rayIntersection(ray);
-        }*/
+        }
 
-        if (ray.endPointTriangle != nullptr) return *ray.endPointTriangle;
+        sphere.rayIntersection(ray);
 
         // TODO: Sometimes the ray hits inbetween two triangles (where it should not be any space), rounding error?
-        ray.color = &defaultColor;
-        return walls.front();
+        if (!ray.hasIntersected)
+            ray.color = &defaultColor;
+
     }
 
     void addTetrahedron(Vertex position, ColorDbl color) {
