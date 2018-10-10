@@ -12,7 +12,6 @@ struct ColorDbl;
 struct Triangle;
 struct Ray;
 
-
 struct Vertex {
     Vertex() : position(glm::vec3(.0, .0, .0)), w(1.0){ }
 
@@ -49,14 +48,15 @@ struct ColorDbl {
 
 struct Ray {
     Ray(Vertex* startIn, Vertex* endIn)
-            : startPoint(startIn), endPoint(endIn), color(nullptr), endPointTriangle(nullptr) {
+            : startPoint(startIn), endPoint(endIn), color(nullptr), endPointTriangle(nullptr), tangentSpace(glm::vec3(0.0)) {
         direction = Direction(startPoint->position - endPoint->position);
     }
 
-    Ray() : startPoint(nullptr), endPoint(nullptr), color(nullptr), endPointTriangle(nullptr) {
+    Ray() : startPoint(nullptr), endPoint(nullptr), color(nullptr), endPointTriangle(nullptr), tangentSpace(glm::vec3(0.0)) {
         direction = Direction();
     }
 
+    glm::vec3 tangentSpace;
     Vertex* startPoint, * endPoint;
     Direction direction;
     ColorDbl* color;
@@ -96,9 +96,12 @@ struct Triangle {
         float t = glm::dot(Q, edge2) * f;
 
         if (t > EPSILON) {
-            ray.endPointTriangle = this;
-            ray.color = &(this->color);
-            return true;
+            if (ray.endPointTriangle == nullptr || ray.tangentSpace.x > t) {
+                ray.endPointTriangle = this;
+                ray.color = &(this->color);
+                ray.tangentSpace = glm::vec3(t, u, v);
+                return true;
+            }
         }
         return false;
     }
@@ -113,5 +116,64 @@ struct Triangle {
     }
 };
 
+struct MeshObject {
+    MeshObject() : color(ColorDbl()), numTriangles(4) {
+        triangles = new Triangle[numTriangles];
+    }
 
+    MeshObject(Vertex position, ColorDbl color, int numTrianglesIn) : numTriangles(numTrianglesIn) {
+        triangles = new Triangle[numTriangles];
+    }
 
+    bool rayIntersection(Ray &ray) {
+        for (int i = 0; i < numTriangles; i++) {
+            triangles[i].rayIntersection(ray);
+        }
+        return ray.endPointTriangle != nullptr;
+    }
+
+    int numTriangles;
+    ColorDbl color;
+    Triangle* triangles;
+};
+
+struct Tetrahedron : MeshObject {
+    Tetrahedron() : Tetrahedron(Vertex(glm::vec3(8.0, 3.0, -4.0)), ColorDbl(0.0, 0.0, 0.0)) { }
+
+    Tetrahedron(Vertex position, ColorDbl color) : MeshObject(position, color, 4) {
+        Vertex v0 = Vertex(glm::vec3(1.0, 1.0, 1.0) + position.position);
+        Vertex v1 = Vertex(glm::vec3(1.0, -1.0f, -1.0f) + position.position);
+        Vertex v2 = Vertex(glm::vec3(-1.0f, 1.0, -1.0f) + position.position);
+        Vertex v3 = Vertex(glm::vec3(-1.0f, -1.0f, 1.0) + position.position);
+
+        // TODO: Arbitrarily chosen order of vertices - normal might be wrong.
+        triangles[0] = Triangle(v0, v1, v2, color);
+        triangles[1] = Triangle(v0, v1, v3, color);
+        triangles[2] = Triangle(v0, v2, v3, color);
+        triangles[3] = Triangle(v1, v2, v3, color);
+    }
+};
+
+struct ImplicitObject {
+    ImplicitObject() { }
+
+    bool rayIntersection(Ray &ray) {
+        std::cout << "Raying in parent class" << std::endl;
+        return true;
+    }
+
+    virtual bool evaluate() {
+        std::cout << "Evaluating in parent class" << std::endl;
+        return true;
+    }
+};
+
+struct ImplicitCircle : ImplicitObject {
+    ImplicitCircle() : ImplicitObject() { }
+
+    // Override
+    bool evaluate() {
+        std::cout << "Evaluating in child class" << std::endl;
+        return true;
+    }
+};

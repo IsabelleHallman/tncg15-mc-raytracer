@@ -34,6 +34,7 @@ Scene generateTestScene() {
     ColorDbl cyan = ColorDbl(0.0, 1.0, 1.0);
     ColorDbl white = ColorDbl(1.0, 1.0, 1.0);
 
+
     std::list<Triangle> sceneTriangles = {
             Triangle(sceneVertices.at(0), sceneVertices.at(2), sceneVertices.at(1), red),
             Triangle(sceneVertices.at(2), sceneVertices.at(1), sceneVertices.at(3), red),
@@ -60,8 +61,15 @@ Scene generateTestScene() {
             Triangle(sceneVertices.at(13), sceneVertices.at(7), sceneVertices.at(9), white),
             Triangle(sceneVertices.at(3), sceneVertices.at(5), sceneVertices.at(7), white)
     };
+    Scene scene = Scene(sceneTriangles);
 
-    return Scene(sceneTriangles);
+    Vertex tetraPosition = Vertex(glm::vec3(8.0, 3.0, -4.0));
+    ColorDbl tetraColor = ColorDbl(.5, 1., 1.);
+    Tetrahedron tetrahedron = Tetrahedron(tetraPosition, tetraColor);
+
+    scene.addTetrahedron(tetraPosition, tetraColor);
+
+    return scene;
 }
 
 int main() {

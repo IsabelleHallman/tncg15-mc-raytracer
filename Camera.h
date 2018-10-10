@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <iostream>
 #include "Scene.h"
+
 struct Pixel {
     Pixel() : color(ColorDbl()), pixelMiddlePosition(Vertex()), ray(Ray()) { }
 
@@ -36,6 +37,7 @@ public:
         array[getPosition(x, y)] = value;
     }
 
+private:
     size_t getPosition(size_t x, size_t y) {
         return x + width * y;
     }
@@ -60,8 +62,8 @@ public:
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 Vertex thisPixelMiddlePosition = Vertex(topLeft.position + glm::vec3(0.0,
-                                                                              pixelSize / 2 + x * pixelSize,
-                                                                              - (pixelSize / 2 + y * pixelSize)));
+                                                                                     pixelSize / 2 + x * pixelSize,
+                                                                                     - (pixelSize / 2 + y * pixelSize)));
                 Vertex* activeEye = frontEyeActive ? &frontEye : &backEye;
                 Ray thisRay = Ray(&thisPixelMiddlePosition, activeEye);
                 ColorDbl thisColor = scene->findIntersectedTriangle(thisRay).color;
@@ -79,9 +81,9 @@ public:
             for (int x = 0; x < width; x++) {
                 // TODO: truncate colors (divide by maxI for entire image)
                 Pixel* thisPixel = sensor.get(x, y);
-                 fputc((int) thisPixel->color.r * 255, f);
-                 fputc((int) thisPixel->color.g * 255, f);
-                 fputc((int) thisPixel->color.b * 255, f);
+                fputc((int) thisPixel->color.r * 255, f);
+                fputc((int) thisPixel->color.g * 255, f);
+                fputc((int) thisPixel->color.b * 255, f);
             }
         }
         fclose(f);
