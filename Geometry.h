@@ -12,7 +12,6 @@ struct ColorDbl;
 struct Triangle;
 struct Ray;
 
-
 struct Vertex {
     Vertex() : position(glm::vec3(.0, .0, .0)), w(1.0){ }
 
@@ -152,5 +151,29 @@ struct Tetrahedron : MeshObject {
         triangles[1] = Triangle(v0, v1, v3, color);
         triangles[2] = Triangle(v0, v2, v3, color);
         triangles[3] = Triangle(v1, v2, v3, color);
+    }
+};
+
+struct ImplicitObject {
+    ImplicitObject() { }
+
+    bool rayIntersection(Ray &ray) {
+        std::cout << "Raying in parent class" << std::endl;
+        return true;
+    }
+
+    virtual bool evaluate() {
+        std::cout << "Evaluating in parent class" << std::endl;
+        return true;
+    }
+};
+
+struct ImplicitCircle : ImplicitObject {
+    ImplicitCircle() : ImplicitObject() { }
+
+    // Override
+    bool evaluate() {
+        std::cout << "Evaluating in child class" << std::endl;
+        return true;
     }
 };

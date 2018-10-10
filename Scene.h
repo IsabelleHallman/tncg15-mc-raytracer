@@ -11,7 +11,13 @@
 
 class Scene {
 public:
-    Scene(std::list<Triangle>& trianglesIn) : walls(trianglesIn) { }
+    Scene(std::list<Triangle>& trianglesIn) : walls(trianglesIn) {
+        std::list<ImplicitObject*> implicits;
+        ImplicitCircle circle = ImplicitCircle();
+        circle.evaluate();
+        implicits.push_back(&circle);
+        implicits.front()->evaluate();
+    }
 
     Triangle& findIntersectedTriangle(Ray &ray) {
         for (auto iterator = walls.begin(); iterator != walls.end(); ++iterator) {
@@ -19,7 +25,8 @@ public:
         }
 
         for (auto iterator = objects.begin(); iterator != objects.end(); ++iterator) {
-            iterator->rayIntersection(ray);
+            std::cout << "Evaluating object " << (*iterator)->numTriangles << std::endl;
+            (*iterator)->rayIntersection(ray);
         }
 
         if (ray.endPointTriangle != nullptr) return *ray.endPointTriangle;
@@ -27,14 +34,13 @@ public:
     }
 
     void addTetrahedron(Vertex position, ColorDbl color) {
-        MeshObject tetrahedron = Tetrahedron(position, color);
-        objects.push_back(tetrahedron);
+        Tetrahedron tetrahedron = Tetrahedron(position, color);
+        objects.emplace_back(&tetrahedron);
     }
-
 
 private:
     std::list<Triangle> walls;
-    std::list<MeshObject> objects;
+    std::list<std::unique_ptr<MeshObject>> objects;
 };
 
 
