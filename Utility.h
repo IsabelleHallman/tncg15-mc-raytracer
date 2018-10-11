@@ -59,12 +59,6 @@ struct Ray {
     Ray() : startPoint(nullptr), endPoint(Vertex()), color(nullptr), endPointTriangle(nullptr),
             tangentSpace(glm::vec3(0.0)), normal(Direction()), direction(Direction()), hasIntersected(false) { }
 
-    ~Ray() {
-        delete startPoint;
-        delete color;
-        delete endPointTriangle;
-    }
-
     glm::vec3 tangentSpace;
     Vertex* startPoint;
     Vertex endPoint;
@@ -145,10 +139,6 @@ struct MeshObject {
             triangles[i].rayIntersection(ray);
         }
         return ray.endPointTriangle != nullptr;
-    }
-
-    ~MeshObject(){
-        delete [] triangles;
     }
 
     int numTriangles;
