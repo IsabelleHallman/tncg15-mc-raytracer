@@ -31,11 +31,11 @@ struct Vertex {
 
 struct Direction {
     Direction(float x, float y, float z) {
-        vector = glm::vec3(x, y, z);
+        vector = glm::normalize(glm::vec3(x, y, z));
     }
 
     Direction(glm::vec3 inVector) {
-        vector = inVector;
+        vector = glm::normalize(inVector);
     }
 
     Direction() {
@@ -52,19 +52,23 @@ struct ColorDbl {
 };
 
 struct Ray {
-    Ray(Vertex* startIn, Vertex* endIn)
-            : startPoint(startIn), endPoint(endIn), color(nullptr), endPointTriangle(nullptr), tangentSpace(glm::vec3(0.0)) {
-        direction = Direction(glm::normalize(startPoint->position - endPoint->position));
-        hasIntersected = false;
-    }
+    Ray(Vertex *startIn, Direction directionIn)
+            : startPoint(startIn), endPoint(Vertex()), direction(directionIn), color(nullptr),
+              endPointTriangle(nullptr), tangentSpace(glm::vec3(0.0)), normal(Direction()), hasIntersected(false) { }
 
-    Ray() : startPoint(nullptr), endPoint(nullptr), color(nullptr), endPointTriangle(nullptr), tangentSpace(glm::vec3(0.0)) {
-        direction = Direction();
-        hasIntersected = false;
+    Ray() : startPoint(nullptr), endPoint(Vertex()), color(nullptr), endPointTriangle(nullptr),
+            tangentSpace(glm::vec3(0.0)), normal(Direction()), direction(Direction()), hasIntersected(false) { }
+
+    ~Ray() {
+        delete startPoint;
+        delete color;
+        delete endPointTriangle;
     }
 
     glm::vec3 tangentSpace;
-    Vertex* startPoint, * endPoint;
+    Vertex* startPoint;
+    Vertex endPoint;
+    Direction normal;
     Direction direction;
     ColorDbl* color;
     Triangle* endPointTriangle;
@@ -106,6 +110,8 @@ struct Triangle {
         if (t > EPSILON) {
             if (!ray.hasIntersected || ray.tangentSpace.x > t) {
                 ray.endPointTriangle = this;
+                ray.endPoint = Vertex(u * edge1 + v * edge2);
+                ray.normal = normal;
                 ray.color = &(this->color);
                 ray.tangentSpace = glm::vec3(t, u, v);
                 ray.hasIntersected = true;
@@ -139,6 +145,10 @@ struct MeshObject {
             triangles[i].rayIntersection(ray);
         }
         return ray.endPointTriangle != nullptr;
+    }
+
+    ~MeshObject(){
+        delete [] triangles;
     }
 
     int numTriangles;
@@ -189,6 +199,8 @@ public:
         ray.color = &color;
         ray.tangentSpace = glm::vec3(d, 1, 1);
         ray.hasIntersected = true;
+        ray.endPoint = Vertex(ray.startPoint->position + d * ray.direction.vector);
+        ray.normal = Direction(ray.endPoint.position - center.position);
 
         return true;
     }

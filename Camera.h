@@ -7,7 +7,6 @@
 
 #include <cstdio>
 #include <iostream>
-#include "Scene.h"
 #include "RayTrace.h"
 
 struct Pixel {
@@ -60,15 +59,18 @@ public:
 
     // Launches a ray through each pixel one at a time
     void render() {
+        RayTrace rayTrace = RayTrace(scene);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 Vertex thisPixelMiddlePosition = Vertex(topLeft.position + glm::vec3(0.0,
                                                                                      pixelSize / 2 + x * pixelSize,
                                                                                      - (pixelSize / 2 + y * pixelSize)));
                 Vertex* activeEye = frontEyeActive ? &frontEye : &backEye;
-                Ray thisRay = Ray(&thisPixelMiddlePosition, activeEye);
-                scene->findIntersectedTriangle(thisRay);
-                ColorDbl thisColor = *(thisRay.color);
+                Ray thisRay = Ray(&thisPixelMiddlePosition, Direction(activeEye->position - thisPixelMiddlePosition.position));
+                ColorDbl thisColor = rayTrace.trace(thisRay);
+
+                /*scene->findIntersectedTriangle(thisRay);
+                ColorDbl thisColor = *(thisRay.color);*/
                 Pixel thisPixel = Pixel(thisColor, thisPixelMiddlePosition, thisRay);
                 sensor.set(thisPixel, x, y);
             }

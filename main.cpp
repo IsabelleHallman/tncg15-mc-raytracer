@@ -81,7 +81,6 @@ int main() {
     Vertex v2 = Vertex(.0, .0, .1, .1);
     Vertex v3 = Vertex(.1, .0, .0, .2);
     ColorDbl color = ColorDbl(1., 1., 1.);
-    Ray myRay = Ray(&v1, &v2);
 
     Scene myScene = generateTestScene();
 
