@@ -228,6 +228,16 @@ struct Light {
     Light(Triangle& areaLightIn, ColorDbl colorIn)
             : areaLight(areaLightIn), color(colorIn) { }
 
+    Vertex getRandomPointOnLight(){
+        float randomU = ((float) rand() / (RAND_MAX));
+        float randomV = 1 - randomU;
+
+        glm::vec3 edge1 = areaLight.v2.position - areaLight.v1.position;
+        glm::vec3 edge2 = areaLight.v3.position - areaLight.v1.position;
+
+        return Vertex(randomU * edge1 + randomV * edge2);
+    }
+
     ColorDbl color;
     Triangle areaLight;
 };
