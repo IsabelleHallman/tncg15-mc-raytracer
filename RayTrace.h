@@ -14,7 +14,13 @@ public:
 
     ColorDbl trace(Ray &ray){
         Node root = createRayTree(ray);
-        return ColorDbl(1,1,1);
+        Node* next = &root;
+        ColorDbl color = ColorDbl(0,0,0);
+        while(next != nullptr) {
+            color += *(next->ray.color);
+            next = next->reflected;
+        }
+        return color/3.f;
     }
 
 private:
