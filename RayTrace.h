@@ -13,14 +13,18 @@ public:
     RayTrace(Scene* sceneIn) : scene(sceneIn){ }
 
     ColorDbl trace(Ray &ray){
-        Node root = createRayTree(ray);
-        Node* next = &root;
+        //Node root = createRayTree(ray);
+       // Node* next = &root;
         ColorDbl color = ColorDbl(0,0,0);
-        while(next != nullptr) {
+        Node root = Node(nullptr, ray);
+        scene->findIntersectedTriangle(root.ray);
+        /*while(next != nullptr) {
             color += *(next->ray.color);
             next = next->reflected;
-        }
-        return color/3.f;
+        }*/
+        if(!isInShadow(root))
+            return *(root.ray.color);
+        return color;
     }
 
 private:
@@ -38,12 +42,12 @@ private:
 
     Node createRayTree(Ray &ray){
         Node root = Node(nullptr, ray);
-        root.reflected = new Node(&root, getReflectedRay(root.ray));
-        Node* next = root.reflected;
+        scene->findIntersectedTriangle(root.ray);
+        Node* next = &root;
 
         for(int i = 0; i < 3; i++) {
-            scene->findIntersectedTriangle(next->ray);
             next->reflected = new Node(next, getReflectedRay(next->ray));
+            scene->findIntersectedTriangle(next->reflected->ray);
             next = next->reflected;
         }
         return root;
@@ -58,7 +62,23 @@ private:
         return Ray();
     }
 
-    void sendShadowRays(){}
+    // Send shadow rays
+    bool isInShadow(Node& node){
+        Light* light = scene->getLight();
+        Ray shadowRay = Ray( &node.ray.endPoint,
+                             Direction(node.ray.endPoint.position - light->getRandomPointOnLight().position));
+
+        scene->findIntersectedTriangle(shadowRay);
+
+        // If the shadow ray intersects with the light, the node (the original ray's end point) is in light
+        if (shadowRay.endPointTriangle && *(shadowRay.endPointTriangle) == light->areaLight) {
+            return false;
+        }
+        // Otherwise there is another object in the way and the point is in shadow.
+
+
+        return true;
+    }
 };
 
 #endif //TNCG15_MC_RAYTRACER_RAYTRACE_H

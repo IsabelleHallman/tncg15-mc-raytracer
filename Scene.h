@@ -13,8 +13,8 @@
 class Scene {
 public:
     Scene(std::list<Triangle>& trianglesIn)
-            : walls(trianglesIn),
-              sphere(ImplicitSphere(1, Vertex(glm::vec3(6.f, -2.f, -3.f)), ColorDbl(0.2, 0.2, 0.2))) { }
+            : walls(trianglesIn)/*,
+              sphere(ImplicitSphere(1, Vertex(glm::vec3(6.f, -2.f, -3.f)), ColorDbl(0.2, 0.2, 0.2)))*/ { }
 
     void findIntersectedTriangle(Ray &ray) {
         for (auto iterator = walls.begin(); iterator != walls.end(); ++iterator) {
@@ -25,7 +25,11 @@ public:
             (iterator)->rayIntersection(ray);
         }
 
-        sphere.rayIntersection(ray);
+        //sphere.rayIntersection(ray);
+
+        for (auto iterator = lights.begin(); iterator != lights.end(); ++iterator) {
+            (iterator)->areaLight.rayIntersection(ray);
+        }
 
         // TODO: Sometimes the ray hits inbetween two triangles (where it should not be any space), rounding error?
         if (!ray.hasIntersected) {
@@ -53,7 +57,7 @@ private:
     std::list<Light> lights;
     std::list<Triangle> walls;
     std::list<MeshObject> objects;
-    ImplicitSphere sphere;
+   // ImplicitSphere sphere;
 
     ColorDbl defaultColor = ColorDbl(1.0, 1.0, 1.0);
 
