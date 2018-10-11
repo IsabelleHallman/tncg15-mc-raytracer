@@ -66,7 +66,7 @@ public:
                                                                                      pixelSize / 2 + x * pixelSize,
                                                                                      - (pixelSize / 2 + y * pixelSize)));
                 Vertex* activeEye = frontEyeActive ? &frontEye : &backEye;
-                Ray thisRay = Ray(&thisPixelMiddlePosition, Direction(activeEye->position - thisPixelMiddlePosition.position));
+                Ray thisRay = Ray(&thisPixelMiddlePosition, Direction(thisPixelMiddlePosition.position - activeEye->position));
                 ColorDbl thisColor = rayTrace.trace(thisRay);
 
                 /*scene->findIntersectedTriangle(thisRay);
