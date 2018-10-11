@@ -28,8 +28,10 @@ public:
         sphere.rayIntersection(ray);
 
         // TODO: Sometimes the ray hits inbetween two triangles (where it should not be any space), rounding error?
-        if (!ray.hasIntersected)
+        if (!ray.hasIntersected) {
             ray.color = &defaultColor;
+            ray.normal = Direction(1., 1., 1.);
+        }
 
     }
 
