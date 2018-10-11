@@ -49,6 +49,24 @@ struct ColorDbl {
     ColorDbl() : r(.0), g(.0), b(.0) {}
     ColorDbl(double rIn, double gIn, double bIn) : r(rIn), g(gIn), b(bIn) { }
     double r, g, b;
+
+    ColorDbl& operator+=(const ColorDbl& other) {
+        r += other.r;
+        g += other.g;
+        b += other.b;
+        return *this;
+    }
+
+    ColorDbl& operator/=(const float denominator) {
+        r /= denominator;
+        g /= denominator;
+        b /= denominator;
+        return *this;
+    }
+
+    ColorDbl operator/(const float denominator) {
+        return ColorDbl(r/denominator, g/denominator, b/denominator);
+    }
 };
 
 struct Ray {
