@@ -44,6 +44,11 @@ public:
         lights.push_back(Light(areaLight, color));
     }
 
+    // TODO: Implement iterator over scene lights to hide light data structure
+    Light* getLight(){
+        return &lights.front();
+    }
+
 private:
     std::list<Light> lights;
     std::list<Triangle> walls;
