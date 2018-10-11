@@ -25,6 +25,10 @@ struct Vertex {
 
     Vertex(glm::vec3 positionIn) : w(1.0), position(positionIn) {}
 
+    bool operator==(const Vertex& b) const {
+        return position.x == b.position.x && position.y == b.position.y && position.z == b.position.z;
+    }
+
     float w;
     glm::vec3 position;
 };
@@ -40,6 +44,10 @@ struct Direction {
 
     Direction() {
         vector = glm::vec3(.0, .0, .0);
+    }
+
+    bool operator==(const Direction& other) const {
+        return other.vector.x == vector.x && other.vector.y == vector.y && other.vector.z == vector.z;
     }
 
     glm::vec3 vector;
@@ -66,6 +74,10 @@ struct ColorDbl {
 
     ColorDbl operator/(const float denominator) {
         return ColorDbl(r/denominator, g/denominator, b/denominator);
+    }
+
+    bool operator==(const ColorDbl& other) const {
+        return other.r == r && other.g == g && other.b == b;
     }
 };
 
@@ -135,6 +147,14 @@ struct Triangle {
         return Vertex(u * edge1 + v * edge2);
     }
 
+    bool operator==(const Triangle& other) const {
+        return other.v1 == v1 && other.v2 == v2 && other.v3 == v3 && other.color == color && other.normal == normal;
+    }
+
+    bool operator!=(const Triangle& other) const {
+        return !(&other == this);
+    }
+
     Vertex v1, v2, v3;
     ColorDbl color;
     Direction normal;
@@ -144,7 +164,7 @@ private:
     glm::vec3 edge2 = v3.position - v1.position;
 
     void computeNormal() {
-        glm::vec3 normalVec = glm::normalize(glm::cross(v1.position - v2.position, v3.position - v2.position));
+        glm::vec3 normalVec = glm::normalize(glm::cross(edge1, edge2));
         normal = Direction(normalVec);
     }
 };
