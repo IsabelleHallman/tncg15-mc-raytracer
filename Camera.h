@@ -67,6 +67,12 @@ public:
                                                                                      - (pixelSize / 2 + y * pixelSize)));
                 Vertex* activeEye = frontEyeActive ? &frontEye : &backEye;
                 Ray thisRay = Ray(&thisPixelMiddlePosition, Direction(thisPixelMiddlePosition.position - activeEye->position));
+                //scene->findIntersectedTriangle(thisRay);
+                //ColorDbl thisColor = *(thisRay.color);
+                if (x == 640 && y == 319)
+                    std::cout << "Here" << std::endl;
+                if (x == 658 && y == 377)
+                    std::cout << "Here" << std::endl;
                 ColorDbl thisColor = rayTrace.trace(thisRay);
                 Pixel thisPixel = Pixel(thisColor, thisPixelMiddlePosition, thisRay);
                 sensor.set(thisPixel, x, y);

@@ -5,6 +5,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/normal.hpp"
 #include "glm/glm.hpp"
+#include "glm/gtc/constants.hpp"
 
 const int LAMBERTIAN = 0;
 const int OREN_NAYAR = 1;
@@ -18,6 +19,7 @@ struct Direction;
 struct ColorDbl;
 struct Triangle;
 struct Ray;
+struct Material;
 
 struct Vertex {
     Vertex() : position(glm::vec3(.0, .0, .0)), w(1.0){ }
@@ -64,8 +66,11 @@ struct Direction {
 };
 
 struct ColorDbl {
-    ColorDbl() : r(.0), g(.0), b(.0) {}
+
+    ColorDbl() : r(.0), g(.0), b(.0) { }
+
     ColorDbl(double rIn, double gIn, double bIn) : r(rIn), g(gIn), b(bIn) { }
+
     double r, g, b;
 
     ColorDbl& operator+=(const ColorDbl& other) {
@@ -93,6 +98,34 @@ struct ColorDbl {
     }
 };
 
+struct Material {
+
+    Material() : color(ColorDbl()), alpha(1.0), specular(0.0), type(LAMBERTIAN), rho(0.5) {}
+
+    Material(ColorDbl colorIn, float alphaIn, float specularIn, int typeIn, float rhoIn)
+            : color(colorIn), alpha(alphaIn), specular(specularIn), type(typeIn), rho(rhoIn) {}
+
+    double getBRDF(Vertex x, Direction wIn, Direction wOut) {
+        switch (type) {
+            case LAMBERTIAN:
+                return rhoOverPi;
+            case OREN_NAYAR:
+                return 1.0;
+            case PERFECT_REFLECTOR:
+                return 1.0;
+            default:
+                return 0.0;
+        }
+    }
+
+    ColorDbl color;
+    float alpha;
+    float specular;
+    int type;
+    float rho;
+    double rhoOverPi = rho * glm::one_over_pi<float>();
+};
+
 struct Ray {
     Ray(Vertex *startIn, Direction directionIn)
             : startPoint(startIn), endPoint(Vertex()), direction(directionIn), color(nullptr),
@@ -112,10 +145,11 @@ struct Ray {
 };
 
 struct Triangle {
-    Triangle() : v1(Vertex()), v2(Vertex()), v3(Vertex()), color(ColorDbl()), normal(Direction()) {}
+    Triangle() : v1(Vertex()), v2(Vertex()), v3(Vertex()), normal(Direction()),
+                 material(new Material()) {}
 
-    Triangle(Vertex &v1In, Vertex &v2In, Vertex &v3In, ColorDbl &colorIn)
-            : v1(v1In), v2(v2In), v3(v3In), color(colorIn), normal(Direction(.0, .0, .0)) {
+    Triangle(Vertex &v1In, Vertex &v2In, Vertex &v3In, Material* materialIn)
+            : v1(v1In), v2(v2In), v3(v3In), normal(Direction(.0, .0, .0)), material(materialIn) {
         computeNormal();
     }
 
@@ -145,7 +179,7 @@ struct Triangle {
                 ray.endPointTriangle = this;
                 ray.endPoint = getPointOnTriangle(u, v);
                 ray.normal = normal;
-                ray.color = &(this->color);
+                ray.color = &(material->color);
                 ray.tangentSpace = glm::vec3(t, u, v);
                 ray.hasIntersected = true;
                 return true;
@@ -159,7 +193,7 @@ struct Triangle {
     }
 
     bool operator==(const Triangle& other) const {
-        return other.v1 == v1 && other.v2 == v2 && other.v3 == v3 && other.color == color && other.normal == normal;
+        return other.v1 == v1 && other.v2 == v2 && other.v3 == v3 && other.material->color == this->material->color && other.normal == normal;
     }
 
     bool operator!=(const Triangle& other) const {
@@ -167,7 +201,7 @@ struct Triangle {
     }
 
     Vertex v1, v2, v3;
-    ColorDbl color;
+    Material* material;
     Direction normal;
 
 private:
@@ -181,11 +215,11 @@ private:
 };
 
 struct MeshObject {
-    MeshObject() : color(ColorDbl()), numTriangles(4) {
+    MeshObject() : numTriangles(4) {
         triangles = new Triangle[numTriangles];
     }
 
-    MeshObject(Vertex position, ColorDbl color, int numTrianglesIn) : numTriangles(numTrianglesIn) {
+    MeshObject(Vertex position,int numTrianglesIn) : numTriangles(numTrianglesIn) {
         triangles = new Triangle[numTriangles];
     }
 
@@ -197,24 +231,23 @@ struct MeshObject {
     }
 
     int numTriangles;
-    ColorDbl color;
     Triangle* triangles;
 };
 
 struct Tetrahedron : MeshObject {
-    Tetrahedron() : Tetrahedron(Vertex(glm::vec3(8.0, 3.0, -4.0)), ColorDbl(0.0, 0.0, 0.0)) { }
+    Tetrahedron() : Tetrahedron(Vertex(glm::vec3(8.0, 3.0, -4.0)), new Material()) { }
 
-    Tetrahedron(Vertex position, ColorDbl color) : MeshObject(position, color, 4) {
+    Tetrahedron(Vertex position, Material* material) : MeshObject(position, 4) {
         Vertex v0 = Vertex(glm::vec3(1.0, 1.0, 1.0) + position.position);
         Vertex v1 = Vertex(glm::vec3(1.0, -1.0f, -1.0f) + position.position);
         Vertex v2 = Vertex(glm::vec3(-1.0f, 1.0, -1.0f) + position.position);
         Vertex v3 = Vertex(glm::vec3(-1.0f, -1.0f, 1.0) + position.position);
 
         // TODO: Arbitrarily chosen order of vertices - normal might be wrong.
-        triangles[0] = Triangle(v0, v1, v2, color);
-        triangles[1] = Triangle(v0, v1, v3, color);
-        triangles[2] = Triangle(v0, v2, v3, color);
-        triangles[3] = Triangle(v1, v2, v3, color);
+        triangles[0] = Triangle(v0, v1, v2, material);
+        triangles[1] = Triangle(v0, v1, v3, material);
+        triangles[2] = Triangle(v0, v2, v3, material);
+        triangles[3] = Triangle(v1, v2, v3, material);
     }
 };
 
@@ -279,17 +312,3 @@ struct Light {
     Triangle areaLight;
 };
 
-struct Material {
-
-    Material(ColorDbl colorIn, float alphaIn, float specularIn, int typeIn)
-            : color(colorIn), alpha(alphaIn), specular(specularIn), type(typeIn) {}
-
-    float getBRDF(Vertex x, Direction wIn, Direction wOut){
-        return 0;
-    }
-
-    ColorDbl color;
-    float alpha;
-    float specular;
-    int type;
-};

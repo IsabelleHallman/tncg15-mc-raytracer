@@ -15,10 +15,12 @@ public:
 
     ColorDbl trace(Ray &ray){
         Node root = createRayTree(ray);
-        Ray rootRay = root.ray;
-        if(isInShadow(rootRay.endPoint))
-            return ColorDbl(0,0,0);
-        return *(rootRay.color);
+        //Ray rootRay = root.ray;
+        //Ray rootRay = ray;
+        //scene->findIntersectedTriangle(rootRay);
+        //if(isInShadow(rootRay.endPoint))
+          //  return ColorDbl(0,0,0);
+        return *(root.ray.color);
     }
 
 private:
@@ -37,14 +39,14 @@ private:
     Node createRayTree(Ray &ray){
         Node root = Node(nullptr, ray);
         scene->findIntersectedTriangle(root.ray);
-        Node* next = &root;
+        /*Node* next = &root;
 
         for(int i = 0; i < 3; i++) {
             // TODO: Stop when hits diffuse surface or when max depth is reached
             next->reflected = new Node(next, getReflectedRay(next->ray));
             scene->findIntersectedTriangle(next->reflected->ray);
             next = next->reflected;
-        }
+        }*/
         return root;
     }
 

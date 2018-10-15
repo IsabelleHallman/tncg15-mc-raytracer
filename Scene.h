@@ -39,8 +39,8 @@ public:
 
     }
 
-    void addTetrahedron(Vertex position, ColorDbl color) {
-        Tetrahedron tetrahedron = Tetrahedron(position, color);
+    void addTetrahedron(Vertex position, Material* material) {
+        Tetrahedron tetrahedron = Tetrahedron(position, material);
         objects.push_back(tetrahedron);
     }
 
