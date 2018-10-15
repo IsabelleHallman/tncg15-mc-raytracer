@@ -44,38 +44,47 @@ Scene generateTestScene() {
     ColorDbl cyanColor = ColorDbl(0.0, 1.0, 1.0);
     Material cyan = Material(cyanColor, 1.0, 0.0, LAMBERTIAN, 0.5);
 
-    ColorDbl whiteColor = ColorDbl(1.0, 1.0, 1.0);
+    ColorDbl whiteColor = ColorDbl(1.0, .9, 1.0);
     Material white = Material(whiteColor, 1.0, 0.0, LAMBERTIAN, 0.5);
 
+    Scene scene = Scene();
 
+    int redIndex = scene.addMaterial(red);
+    int greenIndex = scene.addMaterial(green);
+    int blueIndex = scene.addMaterial(blue);
+    int yellowIndex = scene.addMaterial(yellow);
+    int magentaIndex = scene.addMaterial(magenta);
+    int cyanIndex = scene.addMaterial(cyan);
+    int whiteIndex = scene.addMaterial(white);
 
     std::list<Triangle> sceneTriangles = {
-            Triangle(sceneVertices.at(0), sceneVertices.at(2), sceneVertices.at(1), &red),
-            Triangle(sceneVertices.at(2), sceneVertices.at(1), sceneVertices.at(3), &red),
-            Triangle(sceneVertices.at(3), sceneVertices.at(2), sceneVertices.at(4), &green),
-            Triangle(sceneVertices.at(3), sceneVertices.at(4), sceneVertices.at(5), &green),
-            Triangle(sceneVertices.at(4), sceneVertices.at(6), sceneVertices.at(5), &blue),
-            Triangle(sceneVertices.at(5), sceneVertices.at(6), sceneVertices.at(7), &blue),
-            Triangle(sceneVertices.at(6), sceneVertices.at(8), sceneVertices.at(7), &yellow),
-            Triangle(sceneVertices.at(7), sceneVertices.at(8), sceneVertices.at(9), &yellow),
-            Triangle(sceneVertices.at(8), sceneVertices.at(10), sceneVertices.at(9), &magenta),
-            Triangle(sceneVertices.at(9), sceneVertices.at(10), sceneVertices.at(11), &magenta),
-            Triangle(sceneVertices.at(10), sceneVertices.at(0), sceneVertices.at(11), &cyan),
-            Triangle(sceneVertices.at(0), sceneVertices.at(1), sceneVertices.at(11), &cyan),
-            Triangle(sceneVertices.at(0), sceneVertices.at(10), sceneVertices.at(8), &white),
-            Triangle(sceneVertices.at(0), sceneVertices.at(8), sceneVertices.at(12), &white),
-            Triangle(sceneVertices.at(0), sceneVertices.at(12), sceneVertices.at(2), &white),
-            Triangle(sceneVertices.at(2), sceneVertices.at(12), sceneVertices.at(6), &white),
-            Triangle(sceneVertices.at(12), sceneVertices.at(8), sceneVertices.at(6), &white),
-            Triangle(sceneVertices.at(2), sceneVertices.at(6), sceneVertices.at(4), &white),
-            Triangle(sceneVertices.at(11), sceneVertices.at(1), sceneVertices.at(9), &white),
-            Triangle(sceneVertices.at(1), sceneVertices.at(13), sceneVertices.at(9), &white),
-            Triangle(sceneVertices.at(1), sceneVertices.at(3), sceneVertices.at(13), &white),
-            Triangle(sceneVertices.at(13), sceneVertices.at(3), sceneVertices.at(7), &white),
-            Triangle(sceneVertices.at(13), sceneVertices.at(7), sceneVertices.at(9), &white),
-            Triangle(sceneVertices.at(3), sceneVertices.at(5), sceneVertices.at(7), &white)
+            Triangle(sceneVertices.at(0), sceneVertices.at(2), sceneVertices.at(1), scene.getMaterial(redIndex)),
+            Triangle(sceneVertices.at(2), sceneVertices.at(1), sceneVertices.at(3), scene.getMaterial(redIndex)),
+            Triangle(sceneVertices.at(3), sceneVertices.at(2), sceneVertices.at(4), scene.getMaterial(greenIndex)),
+            Triangle(sceneVertices.at(3), sceneVertices.at(4), sceneVertices.at(5), scene.getMaterial(greenIndex)),
+            Triangle(sceneVertices.at(4), sceneVertices.at(6), sceneVertices.at(5), scene.getMaterial(blueIndex)),
+            Triangle(sceneVertices.at(5), sceneVertices.at(6), sceneVertices.at(7), scene.getMaterial(blueIndex)),
+            Triangle(sceneVertices.at(6), sceneVertices.at(8), sceneVertices.at(7), scene.getMaterial(yellowIndex)),
+            Triangle(sceneVertices.at(7), sceneVertices.at(8), sceneVertices.at(9), scene.getMaterial(yellowIndex)),
+            Triangle(sceneVertices.at(8), sceneVertices.at(10), sceneVertices.at(9), scene.getMaterial(magentaIndex)),
+            Triangle(sceneVertices.at(9), sceneVertices.at(10), sceneVertices.at(11), scene.getMaterial(magentaIndex)),
+            Triangle(sceneVertices.at(10), sceneVertices.at(0), sceneVertices.at(11), scene.getMaterial(cyanIndex)),
+            Triangle(sceneVertices.at(0), sceneVertices.at(1), sceneVertices.at(11), scene.getMaterial(cyanIndex)),
+            Triangle(sceneVertices.at(0), sceneVertices.at(10), sceneVertices.at(8), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(0), sceneVertices.at(8), sceneVertices.at(12), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(0), sceneVertices.at(12), sceneVertices.at(2), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(2), sceneVertices.at(12), sceneVertices.at(6), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(12), sceneVertices.at(8), sceneVertices.at(6), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(2), sceneVertices.at(6), sceneVertices.at(4), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(11), sceneVertices.at(1), sceneVertices.at(9), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(1), sceneVertices.at(13), sceneVertices.at(9), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(1), sceneVertices.at(3), sceneVertices.at(13), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(13), sceneVertices.at(3), sceneVertices.at(7), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(13), sceneVertices.at(7), sceneVertices.at(9), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(3), sceneVertices.at(5), sceneVertices.at(7), scene.getMaterial(whiteIndex))
     };
-    Scene scene = Scene(sceneTriangles);
+
+    scene.addWalls(sceneTriangles);
 
     Vertex tetraPosition = Vertex(glm::vec3(8.0, 3.0, -2.0));
     ColorDbl tetraColor = ColorDbl(.5, 1., 1.);
@@ -83,7 +92,6 @@ Scene generateTestScene() {
 
     scene.addTetrahedron(tetraPosition, &tetraMaterial);
     Vertex tetraPosition2 = Vertex(glm::vec3(8.0, 0.0, 0.0));
-    //Tetrahedron tetrahedron2 = Tetrahedron(tetraPosition2, tetraMaterial);
 
     scene.addTetrahedron(tetraPosition2, &tetraMaterial);
 
@@ -91,7 +99,7 @@ Scene generateTestScene() {
     Vertex l0 = Vertex(5.0, -2.0, 4.9, 1.0);
     Vertex l1 = Vertex(7.0f, 0.0, 4.9, 1.0);
     Vertex l2 = Vertex(5.0, 2.0f, 4.9, 1.0);
-    Triangle lightTriangle = Triangle(l0, l1, l2, &white);
+    Triangle lightTriangle = Triangle(l0, l1, l2, scene.getMaterial(whiteIndex));
     scene.addLight(lightTriangle, whiteColor);
 
     return scene;

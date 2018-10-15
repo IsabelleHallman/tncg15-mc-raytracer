@@ -17,10 +17,10 @@ public:
         Node root = createRayTree(ray);
         //Ray rootRay = root.ray;
         //Ray rootRay = ray;
-        //scene->findIntersectedTriangle(rootRay);
-        //if(isInShadow(rootRay.endPoint))
-          //  return ColorDbl(0,0,0);
-        return *(root.ray.color);
+        //scene->findIntersectedTriangle(ray);
+        if(isInShadow(root.ray.endPoint))
+            return ColorDbl(0,0,0);
+        return *root.ray.color;
     }
 
 private:

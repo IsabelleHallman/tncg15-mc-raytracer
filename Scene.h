@@ -7,6 +7,7 @@
 
 
 #include <list>
+#include <vector>
 #include "Utility.h"
 
 
@@ -15,6 +16,12 @@ public:
     Scene(std::list<Triangle>& trianglesIn)
             : walls(trianglesIn)/*,
               sphere(ImplicitSphere(1, Vertex(glm::vec3(6.f, -2.f, -3.f)), ColorDbl(0.2, 0.2, 0.2)))*/ { }
+
+    Scene() { };
+
+    void addWalls(std::list<Triangle>& trianglesIn) {
+        walls = trianglesIn;
+    }
 
     void findIntersectedTriangle(Ray &ray) {
         for (auto iterator = walls.begin(); iterator != walls.end(); ++iterator) {
@@ -48,6 +55,15 @@ public:
         lights.push_back(Light(areaLight, color));
     }
 
+    int addMaterial(Material material) {
+        materials.push_back(material);
+        return materials.size() - 1;
+    }
+
+    Material* getMaterial(int index) {
+        return &(materials.at(index));
+    }
+
     // TODO: Implement iterator over scene lights to hide light data structure
     Light* getLight(){
         return &lights.front();
@@ -57,6 +73,7 @@ private:
     std::list<Light> lights;
     std::list<Triangle> walls;
     std::list<MeshObject> objects;
+    std::vector<Material> materials;
    // ImplicitSphere sphere;
 
     ColorDbl defaultColor = ColorDbl(1.0, 1.0, 1.0);
