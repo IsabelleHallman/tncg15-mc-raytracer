@@ -7,24 +7,18 @@
 #include "Scene.h"
 
 
+
 class RayTrace
 {
 public:
     RayTrace(Scene* sceneIn) : scene(sceneIn){ }
 
     ColorDbl trace(Ray &ray){
-        //Node root = createRayTree(ray);
-       // Node* next = &root;
-        ColorDbl color = ColorDbl(0,0,0);
-        Node root = Node(nullptr, ray);
-        scene->findIntersectedTriangle(root.ray);
-        /*while(next != nullptr) {
-            color += *(next->ray.color);
-            next = next->reflected;
-        }*/
-        if(!isInShadow(root))
-            return *(root.ray.color);
-        return color;
+        Node root = createRayTree(ray);
+        Ray rootRay = root.ray;
+        if(isInShadow(rootRay.endPoint))
+            return ColorDbl(0,0,0);
+        return *(rootRay.color);
     }
 
 private:
@@ -63,19 +57,21 @@ private:
     }
 
     // Send shadow rays
-    bool isInShadow(Node& node){
+    bool isInShadow(Vertex& intersectionPoint){
         Light* light = scene->getLight();
-        Ray shadowRay = Ray( &node.ray.endPoint,
-                             Direction(node.ray.endPoint.position - light->getRandomPointOnLight().position));
+        //float random = std::rand()/ RAND_MAX;
+        Vertex pointOnLight = (light->areaLight).getPointOnTriangle(0.5, 1-0.5);
+
+        Ray shadowRay = Ray(&intersectionPoint, Direction(pointOnLight.position - intersectionPoint.position));
 
         scene->findIntersectedTriangle(shadowRay);
 
-        // If the shadow ray intersects with the light, the node (the original ray's end point) is in light
-        if (shadowRay.endPointTriangle && *(shadowRay.endPointTriangle) == light->areaLight) {
+        if(shadowRay.endPoint == pointOnLight ||
+                shadowRay.endPointTriangle && *shadowRay.endPointTriangle == light->areaLight) {
             return false;
         }
-        // Otherwise there is another object in the way and the point is in shadow.
-
+        if(shadowRay.startPoint->position.z < -4.9)
+            std::cout << "here";
 
         return true;
     }

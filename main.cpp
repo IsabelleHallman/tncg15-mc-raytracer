@@ -62,7 +62,7 @@ Scene generateTestScene() {
             Triangle(sceneVertices.at(3), sceneVertices.at(5), sceneVertices.at(7), white)
     };
     Scene scene = Scene(sceneTriangles);
-/*
+
     Vertex tetraPosition = Vertex(glm::vec3(8.0, 3.0, -2.0));
     ColorDbl tetraColor = ColorDbl(.5, 1., 1.);
     Tetrahedron tetrahedron = Tetrahedron(tetraPosition, tetraColor);
@@ -71,13 +71,13 @@ Scene generateTestScene() {
     Vertex tetraPosition2 = Vertex(glm::vec3(8.0, 0.0, 0.0));
     Tetrahedron tetrahedron2 = Tetrahedron(tetraPosition2, tetraColor);
 
-    scene.addTetrahedron(tetraPosition2, tetraColor);*/
+    scene.addTetrahedron(tetraPosition2, tetraColor);
 
     // TODO: Perhaps the light triangle should'nt overlap on of the roof triangles
-    Vertex l0 = Vertex(-5.0, 6.0, 4.9, 1.0);
-    Vertex l1 = Vertex(-7.0f, 0.0, 4.9, 1.0);
-    Vertex l2 = Vertex(-5.0, -6.0f, 4.9, 1.0);
-    Triangle lightTriangle = Triangle(l0, l2, l1, red);
+    Vertex l0 = Vertex(5.0, -2.0, 4.9, 1.0);
+    Vertex l1 = Vertex(7.0f, 0.0, 4.9, 1.0);
+    Vertex l2 = Vertex(5.0, 2.0f, 4.9, 1.0);
+    Triangle lightTriangle = Triangle(l0, l1, l2, red);
     scene.addLight(lightTriangle, red);
 
     return scene;

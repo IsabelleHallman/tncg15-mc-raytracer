@@ -10,6 +10,8 @@ const int LAMBERTIAN = 0;
 const int OREN_NAYAR = 1;
 const int PERFECT_REFLECTOR = 2;
 
+const float EPSILON = 1e-6;
+
 
 struct Vertex;
 struct Direction;
@@ -25,8 +27,14 @@ struct Vertex {
 
     Vertex(glm::vec3 positionIn) : w(1.0), position(positionIn) {}
 
+    void print() {
+        std::cout << "[" << position.x << ", " << position.y << ", " << position.z << "]" << std::endl;
+    }
+
     bool operator==(const Vertex& b) const {
-        return position.x == b.position.x && position.y == b.position.y && position.z == b.position.z;
+        return (glm::abs(position.x - b.position.x) < EPSILON
+                && glm::abs(position.y - b.position.y) < EPSILON
+                && glm::abs(position.z - b.position.z) < EPSILON);
     }
 
     float w;
@@ -47,7 +55,9 @@ struct Direction {
     }
 
     bool operator==(const Direction& other) const {
-        return other.vector.x == vector.x && other.vector.y == vector.y && other.vector.z == vector.z;
+        return glm::abs(other.vector.x - vector.x) < EPSILON
+               && glm::abs(other.vector.y - vector.y) < EPSILON
+               && glm::abs(other.vector.z - vector.z) < EPSILON;
     }
 
     glm::vec3 vector;
@@ -77,7 +87,9 @@ struct ColorDbl {
     }
 
     bool operator==(const ColorDbl& other) const {
-        return other.r == r && other.g == g && other.b == b;
+        return glm::abs(other.r - r) < EPSILON
+               && glm::abs(other.g - g) < EPSILON
+               && glm::abs(other.b - b) < EPSILON;
     }
 };
 
@@ -109,7 +121,6 @@ struct Triangle {
 
     bool rayIntersection(Ray &ray) {
         // u v describes points on Moller Trumbore, t where on the ray we are
-        const float EPSILON = 0.0000001;
 
         glm::vec3 T = ray.startPoint->position - v1.position;
         glm::vec3 direction = ray.direction.vector;
@@ -120,12 +131,12 @@ struct Triangle {
         float a = glm::dot(P, edge1);
         if (a < EPSILON && a > -EPSILON) return false;
 
-        float f = 1 / a;
+        float f = 1.0f / a;
 
         float u = glm::dot(P, T) * f;
         float v = glm::dot(Q, direction) * f;
 
-        if (u + v > 1 || u < 0 || v < 0) return false;
+        if (u + v > 1.0f || u < 0.0f || v < 0.0f) return false;
 
         float t = glm::dot(Q, edge2) * f;
 
@@ -144,7 +155,7 @@ struct Triangle {
     }
 
     Vertex getPointOnTriangle(float u, float v) {
-        return Vertex(u * edge1 + v * edge2);
+        return Vertex(v1.position + (u * edge1 + v * edge2));
     }
 
     bool operator==(const Triangle& other) const {

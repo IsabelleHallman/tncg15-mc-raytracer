@@ -68,10 +68,6 @@ public:
                 Vertex* activeEye = frontEyeActive ? &frontEye : &backEye;
                 Ray thisRay = Ray(&thisPixelMiddlePosition, Direction(thisPixelMiddlePosition.position - activeEye->position));
                 ColorDbl thisColor = rayTrace.trace(thisRay);
-
-
-                /*scene->findIntersectedTriangle(thisRay);
-                ColorDbl thisColor = *(thisRay.color);*/
                 Pixel thisPixel = Pixel(thisColor, thisPixelMiddlePosition, thisRay);
                 sensor.set(thisPixel, x, y);
             }
