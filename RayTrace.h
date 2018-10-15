@@ -40,6 +40,7 @@ private:
         Node* next = &root;
 
         for(int i = 0; i < 3; i++) {
+            // TODO: Stop when hits diffuse surface or when max depth is reached
             next->reflected = new Node(next, getReflectedRay(next->ray));
             scene->findIntersectedTriangle(next->reflected->ray);
             next = next->reflected;
@@ -59,8 +60,9 @@ private:
     // Send shadow rays
     bool isInShadow(Vertex& intersectionPoint){
         Light* light = scene->getLight();
-        //float random = std::rand()/ RAND_MAX;
-        Vertex pointOnLight = (light->areaLight).getPointOnTriangle(0.5, 1-0.5);
+        float random = glm::clamp((float) std::rand()/ RAND_MAX, 0.01f, 0.99f);
+        float random1 = random / ((std::rand() % 8) + 2);
+        Vertex pointOnLight = (light->areaLight).getPointOnTriangle(random1, random - random1);
 
         Ray shadowRay = Ray(&intersectionPoint, Direction(pointOnLight.position - intersectionPoint.position));
 
@@ -70,8 +72,8 @@ private:
                 shadowRay.endPointTriangle && *shadowRay.endPointTriangle == light->areaLight) {
             return false;
         }
-        if(shadowRay.startPoint->position.z < -4.9)
-            std::cout << "here";
+        //if(shadowRay.startPoint->position.z < -4.9)
+          //  std::cout << "here";
 
         return true;
     }
