@@ -36,9 +36,8 @@ public:
         }
 
         // TODO: Sometimes the ray hits inbetween two triangles (where it should not be any space), rounding error?
-        if (!ray.hasIntersected) {
-            ray.material = &defaultMaterial;
-            ray.normal = Direction(1., 1., 1.);
+        if(!ray.intersection) {
+            ray.intersection = new Intersection(Vertex(), Direction(), &defaultMaterial, 10000);
         }
 
     }

@@ -11,6 +11,7 @@ struct Vertex;
 struct Direction;
 struct ColorDbl;
 struct Material;
+struct Intersection;
 struct Ray;
 struct Triangle;
 struct MeshObject;
@@ -135,22 +136,31 @@ struct Material {
     double rhoOverPi = rho * glm::one_over_pi<float>();
 };
 
+struct Intersection {
+
+    Intersection(Vertex intersection, Direction normalIn, Material* mat, float dist)
+            : position(intersection), normal(normalIn), material(mat), distanceToRayOrigin(dist) {}
+
+    Vertex position;
+    Direction normal;
+    Material* material;
+    float distanceToRayOrigin;
+};
+
 struct Ray {
     Ray(Vertex *startIn, Direction directionIn)
-            : startPoint(startIn), endPoint(Vertex()), direction(directionIn), material(nullptr),
-              endPointTriangle(nullptr), tangentSpace(glm::vec3(0.0)), normal(Direction()), hasIntersected(false) { }
+            : startPoint(startIn), direction(directionIn), intersection(nullptr) { }
 
-    Ray() : startPoint(nullptr), endPoint(Vertex()), endPointTriangle(nullptr), material(nullptr),
-            tangentSpace(glm::vec3(0.0)), normal(Direction()), direction(Direction()), hasIntersected(false) { }
+    Ray() : startPoint(nullptr), direction(Direction()), intersection(nullptr) { }
 
-    glm::vec3 tangentSpace;
+    ~Ray() {
+        if(intersection)
+            delete intersection;
+    }
+
     Vertex* startPoint;
-    Vertex endPoint;
-    Direction normal;
     Direction direction;
-    Material* material;
-    Triangle* endPointTriangle;
-    bool hasIntersected;
+    Intersection* intersection;
 };
 
 struct Triangle {
@@ -184,13 +194,8 @@ struct Triangle {
         float t = glm::dot(Q, edge2) * f;
 
         if (t > EPSILON) {
-            if (!ray.hasIntersected || ray.tangentSpace.x > t) {
-                ray.endPointTriangle = this;
-                ray.endPoint = getPointOnTriangle(u, v);
-                ray.normal = normal;
-                ray.material = material;
-                ray.tangentSpace = glm::vec3(t, u, v);
-                ray.hasIntersected = true;
+            if(!ray.intersection || ray.intersection->distanceToRayOrigin > t ){
+                ray.intersection = new Intersection(getPointOnTriangle(u, v), normal, material, t);
                 return true;
             }
         }
@@ -236,7 +241,7 @@ struct MeshObject {
         for (int i = 0; i < numTriangles; i++) {
             triangles[i].rayIntersection(ray);
         }
-        return ray.endPointTriangle != nullptr;
+        return ray.intersection != nullptr;
     }
 
     int numTriangles;
@@ -283,12 +288,9 @@ public:
         if (d < 0.f)
             return false;
 
-        ray.tangentSpace = glm::vec3(d, 1, 1);
-        ray.hasIntersected = true;
-        ray.endPoint = Vertex(ray.startPoint->position + d * ray.direction.vector);
-        ray.normal = Direction(ray.endPoint.position - center.position);
-        ray.material = &material;
-
+        Vertex intersectionPoint = Vertex(ray.startPoint->position + d * ray.direction.vector);
+        ray.intersection = new Intersection(intersectionPoint, Direction(intersectionPoint.position - center.position),
+                                            &material, d);
         return true;
     }
 

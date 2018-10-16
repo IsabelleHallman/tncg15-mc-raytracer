@@ -19,9 +19,9 @@ public:
         // TODO: Calculate direct light in leaves and propogate that up to the root
 
         // THIS SHOULD BE REPLACED BY COMPUTATIONS USING THE RAY TREE
-        if(isInShadow(root.ray.endPoint))
+        if(isInShadow(root.ray.intersection->position))
             return ColorDbl(0,0,0);
-        return root.ray.material->color;
+        return root.ray.intersection->material->color;
     }
 
 private:
@@ -55,8 +55,8 @@ private:
 
     Ray getReflectedRay(Ray &incomingRay){
         // TODO: Introduce Monte Carlo scheme by using random directions (slide 209)
-        glm::vec3 reflectedDir = glm::reflect(incomingRay.direction.vector, incomingRay.normal.vector);
-        return Ray(&incomingRay.endPoint, Direction(reflectedDir));
+        glm::vec3 reflectedDir = glm::reflect(incomingRay.direction.vector, incomingRay.intersection->normal.vector);
+        return Ray(&incomingRay.intersection->position, Direction(reflectedDir));
     }
 
     Ray getRefractedRay(){
@@ -75,10 +75,8 @@ private:
 
         scene->findIntersectedTriangle(shadowRay);
 
-        if(shadowRay.endPoint == pointOnLight ||
-                shadowRay.endPointTriangle && *shadowRay.endPointTriangle == light->areaLight) {
+        if(shadowRay.intersection && shadowRay.intersection->position == pointOnLight)
             return false;
-        }
 
         return true;
     }
