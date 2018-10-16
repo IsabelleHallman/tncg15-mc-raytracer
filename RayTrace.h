@@ -6,8 +6,6 @@
 #define TNCG15_MC_RAYTRACER_RAYTRACE_H
 #include "Scene.h"
 
-
-
 class RayTrace
 {
 public:
@@ -15,9 +13,12 @@ public:
 
     ColorDbl trace(Ray &ray){
         Node root = createRayTree(ray);
-        //Ray rootRay = root.ray;
-        //Ray rootRay = ray;
-        //scene->findIntersectedTriangle(ray);
+
+        // TODO: Go through the created ray tree and add the correct
+        // TODO contributions (direct and indirect light)
+        // TODO: Calculate direct light in leaves and propogate that up to the root
+
+        // THIS SHOULD BE REPLACED BY COMPUTATIONS USING THE RAY TREE
         if(isInShadow(root.ray.endPoint))
             return ColorDbl(0,0,0);
         return *root.ray.color;
@@ -39,23 +40,27 @@ private:
     Node createRayTree(Ray &ray){
         Node root = Node(nullptr, ray);
         scene->findIntersectedTriangle(root.ray);
-        /*Node* next = &root;
+        Node* next = &root;
 
+        // TODO: Terminate ray by russian roulette if we are on diffuse surfaces
+        // TODO: The ray should not be terminated on reflecting or refracting surfaces
         for(int i = 0; i < 3; i++) {
-            // TODO: Stop when hits diffuse surface or when max depth is reached
+            // TODO: ADD refracted rays as well.
             next->reflected = new Node(next, getReflectedRay(next->ray));
             scene->findIntersectedTriangle(next->reflected->ray);
             next = next->reflected;
-        }*/
+        }
         return root;
     }
 
     Ray getReflectedRay(Ray &incomingRay){
+        // TODO: Introduce Monte Carlo scheme by using random directions (slide 209)
         glm::vec3 reflectedDir = glm::reflect(incomingRay.direction.vector, incomingRay.normal.vector);
         return Ray(&incomingRay.endPoint, Direction(reflectedDir));
     }
 
     Ray getRefractedRay(){
+        // TODO: Implement refracted rays
         return Ray();
     }
 
@@ -74,8 +79,6 @@ private:
                 shadowRay.endPointTriangle && *shadowRay.endPointTriangle == light->areaLight) {
             return false;
         }
-        //if(shadowRay.startPoint->position.z < -4.9)
-          //  std::cout << "here";
 
         return true;
     }

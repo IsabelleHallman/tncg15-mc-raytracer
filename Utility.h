@@ -7,19 +7,24 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/constants.hpp"
 
+struct Vertex;
+struct Direction;
+struct ColorDbl;
+struct Material;
+struct Ray;
+struct Triangle;
+struct MeshObject;
+struct Tetrahedron;
+struct ImplicitSphere;
+struct Light;
+
+const float EPSILON = 1e-6;
+
 const int LAMBERTIAN = 0;
 const int OREN_NAYAR = 1;
 const int PERFECT_REFLECTOR = 2;
 
-const float EPSILON = 1e-6;
 
-
-struct Vertex;
-struct Direction;
-struct ColorDbl;
-struct Triangle;
-struct Ray;
-struct Material;
 
 struct Vertex {
     Vertex() : position(glm::vec3(.0, .0, .0)), w(1.0){ }
@@ -99,19 +104,23 @@ struct ColorDbl {
 };
 
 struct Material {
-
     Material() : color(ColorDbl()), alpha(1.0), specular(0.0), type(LAMBERTIAN), rho(0.5) {}
 
     Material(ColorDbl colorIn, float alphaIn, float specularIn, int typeIn, float rhoIn)
             : color(colorIn), alpha(alphaIn), specular(specularIn), type(typeIn), rho(rhoIn) {}
 
+    // TODO: Should this return a glm:vec3 instead (R,G,B)? So it becomes how much
+    // TODO  it reflects in the different cannels
     double getBRDF(Vertex x, Direction wIn, Direction wOut) {
         switch (type) {
             case LAMBERTIAN:
+                // TODO: Use different values of pho for R, G, B
                 return rhoOverPi;
             case OREN_NAYAR:
+                // TODO: Implement Oren-Nayar reflector
                 return 1.0;
             case PERFECT_REFLECTOR:
+                // TODO: In case
                 return 1.0;
             default:
                 return 0.0;
