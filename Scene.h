@@ -14,14 +14,9 @@
 class Scene {
 public:
     Scene(std::list<Triangle>& trianglesIn)
-            : walls(trianglesIn)/*,
-              sphere(ImplicitSphere(1, Vertex(glm::vec3(6.f, -2.f, -3.f)), ColorDbl(0.2, 0.2, 0.2)))*/ { }
+            : walls(trianglesIn), defaultMaterial(Material()) { }
 
-    Scene() { };
-
-    void addWalls(std::list<Triangle>& trianglesIn) {
-        walls = trianglesIn;
-    }
+    Scene() : defaultMaterial(Material()) { };
 
     void findIntersectedTriangle(Ray &ray) {
         for (auto iterator = walls.begin(); iterator != walls.end(); ++iterator) {
@@ -32,7 +27,9 @@ public:
             (iterator)->rayIntersection(ray);
         }
 
-        //sphere.rayIntersection(ray);
+        for (auto iterator = implicitSpheres.begin(); iterator != implicitSpheres.end(); ++iterator){
+            (iterator)->rayIntersection(ray);
+        }
 
         for (auto iterator = lights.begin(); iterator != lights.end(); ++iterator) {
             (iterator)->areaLight.rayIntersection(ray);
@@ -40,10 +37,14 @@ public:
 
         // TODO: Sometimes the ray hits inbetween two triangles (where it should not be any space), rounding error?
         if (!ray.hasIntersected) {
-            ray.color = &defaultColor;
+            ray.material = &defaultMaterial;
             ray.normal = Direction(1., 1., 1.);
         }
 
+    }
+
+    void addWalls(std::list<Triangle>& trianglesIn) {
+        walls = trianglesIn;
     }
 
     void addTetrahedron(Vertex position, Material* material) {
@@ -51,13 +52,18 @@ public:
         objects.push_back(tetrahedron);
     }
 
-    void addLight(Triangle& areaLight, ColorDbl color) {
-        lights.push_back(Light(areaLight, color));
+    void addImplicitSphere(float radius, Vertex position, Material material) {
+        ImplicitSphere sphere = ImplicitSphere(radius, position, material);
+        implicitSpheres.push_back(sphere);
     }
 
     int addMaterial(Material material) {
         materials.push_back(material);
         return materials.size() - 1;
+    }
+
+    void addLight(Triangle& areaLight, ColorDbl color) {
+        lights.push_back(Light(areaLight, color));
     }
 
     Material* getMaterial(int index) {
@@ -70,14 +76,14 @@ public:
     }
 
 private:
-    std::list<Light> lights;
+
     std::list<Triangle> walls;
     std::list<MeshObject> objects;
+    std::list<ImplicitSphere> implicitSpheres;
+    std::list<Light> lights;
+
     std::vector<Material> materials;
-   // ImplicitSphere sphere;
-
-    ColorDbl defaultColor = ColorDbl(1.0, 1.0, 1.0);
-
+    Material defaultMaterial;
 };
 
 

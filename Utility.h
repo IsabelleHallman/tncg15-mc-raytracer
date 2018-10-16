@@ -137,10 +137,10 @@ struct Material {
 
 struct Ray {
     Ray(Vertex *startIn, Direction directionIn)
-            : startPoint(startIn), endPoint(Vertex()), direction(directionIn), color(nullptr),
+            : startPoint(startIn), endPoint(Vertex()), direction(directionIn), material(nullptr),
               endPointTriangle(nullptr), tangentSpace(glm::vec3(0.0)), normal(Direction()), hasIntersected(false) { }
 
-    Ray() : startPoint(nullptr), endPoint(Vertex()), color(nullptr), endPointTriangle(nullptr),
+    Ray() : startPoint(nullptr), endPoint(Vertex()), endPointTriangle(nullptr), material(nullptr),
             tangentSpace(glm::vec3(0.0)), normal(Direction()), direction(Direction()), hasIntersected(false) { }
 
     glm::vec3 tangentSpace;
@@ -148,7 +148,7 @@ struct Ray {
     Vertex endPoint;
     Direction normal;
     Direction direction;
-    ColorDbl* color;
+    Material* material;
     Triangle* endPointTriangle;
     bool hasIntersected;
 };
@@ -188,7 +188,7 @@ struct Triangle {
                 ray.endPointTriangle = this;
                 ray.endPoint = getPointOnTriangle(u, v);
                 ray.normal = normal;
-                ray.color = &(material->color);
+                ray.material = material;
                 ray.tangentSpace = glm::vec3(t, u, v);
                 ray.hasIntersected = true;
                 return true;
@@ -263,8 +263,8 @@ struct Tetrahedron : MeshObject {
 struct ImplicitSphere {
 
 public:
-    ImplicitSphere(float radiusIn, Vertex centerPos, ColorDbl colorIn)
-            : radius(radiusIn), center(centerPos), color(colorIn), radiusSquared(glm::pow(radiusIn, 2)) { }
+    ImplicitSphere(float radiusIn, Vertex centerPos, Material materialIn)
+            : radius(radiusIn), center(centerPos), material(materialIn), radiusSquared(glm::pow(radiusIn, 2)) { }
 
     bool rayIntersection(Ray &ray) {
         float a = 1; // Dot product of rays direction with itself
@@ -283,11 +283,11 @@ public:
         if (d < 0.f)
             return false;
 
-        ray.color = &color;
         ray.tangentSpace = glm::vec3(d, 1, 1);
         ray.hasIntersected = true;
         ray.endPoint = Vertex(ray.startPoint->position + d * ray.direction.vector);
         ray.normal = Direction(ray.endPoint.position - center.position);
+        ray.material = &material;
 
         return true;
     }
@@ -300,7 +300,7 @@ private:
     float radius;
     float radiusSquared;
     Vertex center;
-    ColorDbl color;
+    Material material;
 };
 
 struct Light {

@@ -86,14 +86,19 @@ Scene generateTestScene() {
 
     scene.addWalls(sceneTriangles);
 
+    // Tetrahedron Objects
     Vertex tetraPosition = Vertex(glm::vec3(8.0, 3.0, -2.0));
     ColorDbl tetraColor = ColorDbl(.5, 1., 1.);
     Material tetraMaterial = Material(tetraColor, 1.0, 0.0, LAMBERTIAN, 0.5);
-
     scene.addTetrahedron(tetraPosition, &tetraMaterial);
-    Vertex tetraPosition2 = Vertex(glm::vec3(8.0, 0.0, 0.0));
 
+    Vertex tetraPosition2 = Vertex(glm::vec3(8.0, 0.0, 0.0));
     scene.addTetrahedron(tetraPosition2, &tetraMaterial);
+
+    // Implicit spheres
+    Material sphereMaterial = Material(whiteColor, 1.0, 0.0, PERFECT_REFLECTOR, 1.0);
+    Vertex centerOfSphere = Vertex(glm::vec3(6.f, -2.f, -3.f));
+    scene.addImplicitSphere(1.0, centerOfSphere, sphereMaterial);
 
     // TODO: Perhaps the light triangle should'nt overlap on of the roof triangles
     Vertex l0 = Vertex(5.0, -2.0, 4.9, 1.0);

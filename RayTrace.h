@@ -21,7 +21,7 @@ public:
         // THIS SHOULD BE REPLACED BY COMPUTATIONS USING THE RAY TREE
         if(isInShadow(root.ray.endPoint))
             return ColorDbl(0,0,0);
-        return *root.ray.color;
+        return root.ray.material->color;
     }
 
 private:
