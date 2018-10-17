@@ -24,6 +24,7 @@ const float EPSILON = 1e-4;
 const int LAMBERTIAN = 0;
 const int OREN_NAYAR = 1;
 const int PERFECT_REFLECTOR = 2;
+const int LIGHT = 3;
 
 
 
