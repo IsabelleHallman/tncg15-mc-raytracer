@@ -18,11 +18,9 @@ public:
         // TODO: Calculate direct light in leaves and propogate that up to the root
 
         // THIS SHOULD BE REPLACED BY COMPUTATIONS USING THE RAY TREE
+        if (root.ray.intersection->material->type == LIGHT) return root.ray.intersection->material->color;
         glm::vec3 directLight = calculateDirectLight(root.ray.intersection, &root.ray);
         ColorDbl newColor = root.ray.intersection->material->color * directLight;
-        if (newColor.g > 1.) {
-            std::cout << "This is very green" << std::endl;
-        }
         return newColor;
     }
 
@@ -56,9 +54,8 @@ private:
     }
 
     glm::vec3 calculateDirectLight(Intersection* intersection, Ray* ray) {
-        // TODO: fix bugs
         glm::vec3 allLightsContributions = glm::vec3(0.0);
-        int numRays = 1;
+        int numRays = 3;
 
         for (auto iterator = scene->lightBegin(); iterator != scene->lightEnd(); ++iterator) {
             glm::vec3 singleLightContribution = glm::vec3(0.0);

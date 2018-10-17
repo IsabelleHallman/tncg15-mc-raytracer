@@ -27,25 +27,27 @@ Scene generateTestScene() {
             };
 
     ColorDbl redColor = ColorDbl(1.0, 0.0, 0.0);
-    Material red = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
+    Material red = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
 
     ColorDbl greenColor = ColorDbl(0.0, 1.0, 0.0);
-    Material green = Material(greenColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
+    Material green = Material(greenColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
 
     ColorDbl blueColor = ColorDbl(0.0, 0.0, 1.0);
-    Material blue = Material(blueColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
+    Material blue = Material(blueColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
 
     ColorDbl yellowColor = ColorDbl(1.0, 1.0, 0.0);
-    Material yellow = Material(yellowColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
+    Material yellow = Material(yellowColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
 
     ColorDbl magentaColor = ColorDbl(1.0, 0.0, 1.0);
-    Material magenta = Material(magentaColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
+    Material magenta = Material(magentaColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
 
     ColorDbl cyanColor = ColorDbl(0.0, 1.0, 1.0);
-    Material cyan = Material(cyanColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
+    Material cyan = Material(cyanColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
 
     ColorDbl whiteColor = ColorDbl(1.0, .9, 1.0);
-    Material white = Material(whiteColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
+    Material white = Material(whiteColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
+
+    Material light = Material(whiteColor, 1.0, 0.0, LIGHT, glm::vec3(1.0));
 
     Scene scene = Scene();
 
@@ -56,6 +58,17 @@ Scene generateTestScene() {
     int magentaIndex = scene.addMaterial(magenta);
     int cyanIndex = scene.addMaterial(cyan);
     int whiteIndex = scene.addMaterial(white);
+    int lightIndex = scene.addMaterial(light);
+
+    ColorDbl tetraColor = ColorDbl(.5, 1., 1.);
+    Material tetraMaterial = Material(tetraColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
+    int tetraMaterialIndex = scene.addMaterial(tetraMaterial);
+
+
+    // Moving these lines below sceneTriangles creation causes weird errors on the scene materials. Memory conflict?
+    Material sphereMaterial = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
+    int sphereMaterialIndex = scene.addMaterial(sphereMaterial);
+
 
     std::list<Triangle> sceneTriangles = {
             Triangle(sceneVertices.at(0), sceneVertices.at(2), sceneVertices.at(1), scene.getMaterial(redIndex)),
@@ -88,44 +101,41 @@ Scene generateTestScene() {
 
     // Tetrahedron Objects
     Vertex tetraPosition = Vertex(glm::vec3(8.0, 3.0, -2.0));
-    ColorDbl tetraColor = ColorDbl(.5, 1., 1.);
-    Material tetraMaterial = Material(tetraColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
-    scene.addTetrahedron(tetraPosition, &tetraMaterial);
+    scene.addTetrahedron(tetraPosition, scene.getMaterial(tetraMaterialIndex));
 
     Vertex tetraPosition2 = Vertex(glm::vec3(8.0, 0.0, 0.0));
-    scene.addTetrahedron(tetraPosition2, &tetraMaterial);
+    scene.addTetrahedron(tetraPosition2, scene.getMaterial(tetraMaterialIndex));
 
     // Implicit spheres
-    Material sphereMaterial = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
     Vertex centerOfSphere = Vertex(glm::vec3(6.f, -2.f, -3.f));
-    scene.addImplicitSphere(1.0, centerOfSphere, sphereMaterial);
+    scene.addImplicitSphere(1.0, centerOfSphere, scene.getMaterial(sphereMaterialIndex));
 
     Vertex centerOfSphere2 = Vertex(glm::vec3(8.f, 3.f, 4.f));
-    scene.addImplicitSphere(1.0, centerOfSphere2, sphereMaterial);
+    scene.addImplicitSphere(1.0, centerOfSphere2, scene.getMaterial(sphereMaterialIndex));
 
     Vertex l0 = Vertex(5.0, -2.0f, 4.9, 1.0);
     Vertex l1 = Vertex(7.0f, 0.0, 4.9, 1.0);
     Vertex l2 = Vertex(5.0, 2.0f, 4.9, 1.0);
-    Triangle lightTriangle = Triangle(l0, l2, l1, scene.getMaterial(whiteIndex));
+    Triangle lightTriangle = Triangle(l0, l2, l1, scene.getMaterial(lightIndex));
     scene.addLight(lightTriangle, whiteColor);
 
     Vertex l3 = Vertex(1.0, -3.0f, 4.95, 1.0);
     Vertex l4 = Vertex(3.0f, 0.0, 4.95, 1.0);
     Vertex l5 = Vertex(1.0, 1.0f, 4.95, 1.0);
-    Triangle lightTriangle2 = Triangle(l3, l5, l4, scene.getMaterial(whiteIndex));
-    scene.addLight(lightTriangle2, whiteColor);
+    Triangle lightTriangle2 = Triangle(l3, l5, l4, scene.getMaterial(lightIndex));
+    //scene.addLight(lightTriangle2, whiteColor);
 
     Vertex l6 = Vertex(1.0, -3.0f, -4.95f, 1.0);
     Vertex l7 = Vertex(3.0f, 0.0, -4.95f, 1.0);
     Vertex l8 = Vertex(1.0, 1.0f, -4.95f, 1.0);
-    Triangle lightTriangle3 = Triangle(l6, l7, l8, scene.getMaterial(whiteIndex));
+    Triangle lightTriangle3 = Triangle(l6, l7, l8, scene.getMaterial(lightIndex));
     scene.addLight(lightTriangle3, whiteColor);
 
     Vertex l9 = Vertex(5.0, -2.0f, -4.9f, 1.0);
     Vertex l10 = Vertex(7.0f, 0.0, -4.9f, 1.0);
     Vertex l11 = Vertex(5.0, 2.0f, -4.9f, 1.0);
-    Triangle lightTriangle4 = Triangle(l9, l11, l10, scene.getMaterial(whiteIndex));
-    scene.addLight(lightTriangle, whiteColor);
+    Triangle lightTriangle4 = Triangle(l9, l11, l10, scene.getMaterial(lightIndex));
+    //scene.addLight(lightTriangle, whiteColor);
 
     return scene;
 }
