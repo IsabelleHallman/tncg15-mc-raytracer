@@ -288,29 +288,45 @@ public:
 
     bool rayIntersection(Ray &ray) {
         float a = 1; // Dot product of rays direction with itself
-        glm::vec3 dirRayOriginToCenter = ray.startPoint->position - center.position;
-        float b = glm::dot((2.f * ray.direction.vector),dirRayOriginToCenter);
+        glm::vec3 dirRayOriginToCenter = ray.startPoint->position - center.position; //L
+        float b = glm::dot((2.f * ray.direction.vector), dirRayOriginToCenter);
         float c = glm::dot(dirRayOriginToCenter, dirRayOriginToCenter) - radiusSquared;
 
-        float discriminant = glm::pow(b/2, 2) - a*c;
-        if (discriminant < 0.f)
-            return false;
+        float d0, d1;
+        if (!solveQuadratic(a, b, c, d0, d1)) return false;
 
-        float d = -b/2 + glm::sqrt(discriminant);
-        if (d < 0.f)
-            d = -b/2 - glm::sqrt(discriminant);
+        if (d0 > d1) std::swap(d0, d1);
 
-        if (d < 0.f)
-            return false;
+        if (d0 < 0) {
+            d0 = d1;
+            if (d0 < 0) return false;
+        }
 
-        Vertex intersectionPoint = Vertex(ray.startPoint->position + d * ray.direction.vector);
+        Vertex intersectionPoint = Vertex(ray.startPoint->position + d0 * ray.direction.vector);
         ray.intersection = new Intersection(intersectionPoint, Direction(intersectionPoint.position - center.position),
-                                            &material, d);
+                                            &material, d0);
         return true;
     }
 
     bool evaluate(glm::vec3 position) {
         return (glm::pow(glm::length(position - center.position), 2) == radiusSquared);
+    }
+
+    bool solveQuadratic(const float &a, const float &b, const float &c, float &x0, float &x1) {
+        // Source: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
+        float discr = b * b - 4 * a * c;
+        if (discr < 0) return false;
+        else if (discr == 0) x0 = x1 = - 0.5 * b / a;
+        else {
+            float q = (b > 0) ?
+                      -0.5 * (b + sqrt(discr)) :
+                      -0.5 * (b - sqrt(discr));
+            x0 = q / a;
+            x1 = c / q;
+        }
+        if (x0 > x1) std::swap(x0, x1);
+
+        return true;
     }
 
 private:
