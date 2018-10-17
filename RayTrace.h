@@ -16,7 +16,6 @@ public:
         glm::vec3 colorContrib = calculateLight(&root);
         ColorDbl pixelColor = ColorDbl(colorContrib);
 
-        deleteNodes(root);
         return pixelColor;
     }
 
@@ -33,21 +32,6 @@ private:
         Ray ray;
     };
 
-    void destroyRecursive(Node *node)
-    {
-        if (node)
-        {
-            destroyRecursive(node->reflected);
-            destroyRecursive(node->refracted);
-            delete node;
-        }
-    }
-
-    void deleteNodes(Node root){
-       // destroyRecursive(root.reflected);
-        //destroyRecursive(root.refracted);
-    }
-
     Scene* scene;
 
     glm::vec3 calculateLight(Node* currentNode) {
@@ -57,6 +41,11 @@ private:
             reflectedLight = calculateLight(currentNode->reflected);
         if(currentNode->refracted != nullptr)
             refractedLight = calculateLight(currentNode->refracted);
+
+        if (currentNode->ray.intersection->material->type == LIGHT) {
+            ColorDbl lightColor = currentNode->ray.intersection->material->color;
+            return glm::vec3(lightColor.r, lightColor.g, lightColor.b);
+        }
 
         // In our case, we will only have either reflected or refracted light, never both.
         glm::vec3 currentLight = reflectedLight + refractedLight;
@@ -92,9 +81,8 @@ private:
     }
 
     glm::vec3 calculateDirectLight(Intersection* intersection, Ray* ray) {
-        // TODO: fix bugs
         glm::vec3 allLightsContributions = glm::vec3(0.0);
-        int numRays = 1;
+        int numRays = 3;
 
         for (auto iterator = scene->lightBegin(); iterator != scene->lightEnd(); ++iterator) {
             glm::vec3 singleLightContribution = glm::vec3(0.0);

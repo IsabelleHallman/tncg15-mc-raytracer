@@ -80,12 +80,10 @@ public:
         fprintf(f, "P6\n%i %i 255\n", width, height);
 
         double iMax = findIMax();
-        float normFactor = 255.99 / iMax;
+        double normFactor = 255.99 / iMax;
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                // TODO: truncate colors (divide by maxI for entire image)
-                // TODO: should the division be by the radiance of the light sources?
                 Pixel* thisPixel = sensor.get(x, y);
                 fputc((int) (thisPixel->color.r * normFactor), f);
                 fputc((int) (thisPixel->color.g * normFactor), f);
