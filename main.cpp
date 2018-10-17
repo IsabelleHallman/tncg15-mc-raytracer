@@ -118,6 +118,12 @@ Scene generateTestScene() {
     Triangle lightTriangle3 = Triangle(l6, l7, l8, scene.getMaterial(whiteIndex));
     scene.addLight(lightTriangle3, whiteColor);
 
+    Vertex l9 = Vertex(5.0, -2.0f, -4.9f, 1.0);
+    Vertex l10 = Vertex(7.0f, 0.0, -4.9f, 1.0);
+    Vertex l11 = Vertex(5.0, 2.0f, -4.9f, 1.0);
+    Triangle lightTriangle4 = Triangle(l9, l11, l10, scene.getMaterial(whiteIndex));
+    scene.addLight(lightTriangle, whiteColor);
+
     return scene;
 }
 
