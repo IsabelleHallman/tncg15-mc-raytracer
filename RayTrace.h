@@ -55,8 +55,7 @@ private:
             ColorDbl currentColorDbl = currentNode->ray.intersection->material->color;
             glm::vec3 currentColor = glm::vec3(currentColorDbl.r, currentColorDbl.g, currentColorDbl.b);
 
-            glm::vec3 directLight = calculateDirectLight(currentNode->ray.intersection, &currentNode->ray);
-            ColorDbl newColor = currentNode->ray.intersection->material->color * directLight;
+            glm::vec3 directLight = calculateDirectLight(&currentNode->ray);
 
             currentLight += (currentColor * directLight);
         }
@@ -80,7 +79,7 @@ private:
         return root;
     }
 
-    glm::vec3 calculateDirectLight(Intersection* intersection, Ray* ray) {
+    glm::vec3 calculateDirectLight(Ray* ray) {
         glm::vec3 allLightsContributions = glm::vec3(0.0);
         int numRays = 3;
 

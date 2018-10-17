@@ -34,7 +34,7 @@ struct Vertex {
     Vertex(float x, float y, float z, float wIn)
             : position(glm::vec3(x, y, z)), w(wIn) { }
 
-    Vertex(glm::vec3 positionIn) : w(1.0), position(positionIn) {}
+    Vertex(glm::vec3 positionIn) : position(positionIn), w(1.0) {}
 
     void print() {
         std::cout << "[" << position.x << ", " << position.y << ", " << position.z << "]" << std::endl;
@@ -50,8 +50,8 @@ struct Vertex {
         return !(*this == b);
     }
 
-    float w;
     glm::vec3 position;
+    float w;
 };
 
 struct Direction {
@@ -170,8 +170,8 @@ struct Ray {
 };
 
 struct Triangle {
-    Triangle() : v1(Vertex()), v2(Vertex()), v3(Vertex()), normal(Direction()),
-                 material(new Material()) {
+    Triangle() : v1(Vertex()), v2(Vertex()), v3(Vertex()),
+                 material(new Material()), normal(Direction()) {
         edge1 = v2.position - v1.position;
         edge2 =  v3.position - v1.position;
         area = 0.5 * glm::length(glm::cross(edge1, edge2));
@@ -179,7 +179,7 @@ struct Triangle {
     }
 
     Triangle(Vertex &v1In, Vertex &v2In, Vertex &v3In, Material* materialIn)
-            : v1(v1In), v2(v2In), v3(v3In), normal(Direction(.0, .0, .0)), material(materialIn) {
+            : v1(v1In), v2(v2In), v3(v3In), material(materialIn), normal(Direction(.0, .0, .0)) {
         edge1 = v2.position - v1.position;
         edge2 =  v3.position - v1.position;
         area = 0.5 * glm::length(glm::cross(edge1, edge2));
@@ -248,7 +248,7 @@ struct MeshObject {
         triangles = new Triangle[numTriangles];
     }
 
-    MeshObject(Vertex position,int numTrianglesIn) : numTriangles(numTrianglesIn) {
+    MeshObject(int numTrianglesIn) : numTriangles(numTrianglesIn) {
         triangles = new Triangle[numTriangles];
     }
 
@@ -266,7 +266,7 @@ struct MeshObject {
 struct Tetrahedron : MeshObject {
     Tetrahedron() : Tetrahedron(Vertex(glm::vec3(8.0, 3.0, -4.0)), new Material()) { }
 
-    Tetrahedron(Vertex position, Material* material) : MeshObject(position, 4) {
+    Tetrahedron(Vertex position, Material* material) : MeshObject(4) {
         Vertex v0 = Vertex(glm::vec3(1.0, 1.0, 1.0) + position.position);
         Vertex v1 = Vertex(glm::vec3(1.0, -1.0f, -1.0f) + position.position);
         Vertex v2 = Vertex(glm::vec3(-1.0f, 1.0, -1.0f) + position.position);
@@ -284,7 +284,7 @@ struct ImplicitSphere {
 
 public:
     ImplicitSphere(float radiusIn, Vertex centerPos, Material* materialIn)
-            : radius(radiusIn), center(centerPos), material(materialIn), radiusSquared(glm::pow(radiusIn, 2)) { }
+            : radius(radiusIn), radiusSquared(glm::pow(radiusIn, 2)), center(centerPos), material(materialIn) { }
 
     bool rayIntersection(Ray &ray) {
         float a = 1; // Dot product of rays direction with itself
@@ -312,14 +312,14 @@ public:
     }
 
     bool evaluate(glm::vec3 position) {
-        return (glm::pow(glm::length(position - center.position), 2) == radiusSquared);
+        return (glm::abs(glm::pow(glm::length(position - center.position), 2) - radiusSquared)) < EPSILON;
     }
 
     bool solveQuadratic(const float &a, const float &b, const float &c, float &x0, float &x1) {
         // Source: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
         float discr = b * b - 4 * a * c;
         if (discr < 0) return false;
-        else if (discr == 0) x0 = x1 = - 0.5 * b / a;
+        else if (glm::abs(discr) < EPSILON) x0 = x1 = - 0.5 * b / a;
         else {
             float q = (b > 0) ?
                       -0.5 * (b + sqrt(discr)) :
@@ -341,7 +341,7 @@ private:
 
 struct Light {
     Light(Triangle& lightTriangleIn, ColorDbl colorIn)
-            : lightTriangle(lightTriangleIn), color(colorIn) { }
+            : color(colorIn), lightTriangle(lightTriangleIn) { }
 
     Vertex getRandomPointOnLight(){
         float random = glm::clamp((float) std::rand()/ RAND_MAX, 0.01f, 0.99f);

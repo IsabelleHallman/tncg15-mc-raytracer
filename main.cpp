@@ -7,6 +7,18 @@
 #include <iostream>
 #include <vector>
 
+Scene generateTestScene();
+
+int main() {
+    Scene myScene = generateTestScene();
+
+    Camera camera = Camera(&myScene);
+    camera.render();
+    camera.createImage();
+    return 0;
+}
+
+
 Scene generateTestScene() {
     std::vector<Vertex> sceneVertices =
             {
@@ -49,8 +61,6 @@ Scene generateTestScene() {
 
     Material light = Material(whiteColor, 1.0, 0.0, LIGHT, glm::vec3(1.0));
 
-    Material perfectReflector = Material(whiteColor, 1.0, 0.0, PERFECT_REFLECTOR, glm::vec3(0.5));
-
     Scene scene = Scene();
 
     int redIndex = scene.addMaterial(red);
@@ -60,7 +70,6 @@ Scene generateTestScene() {
     int magentaIndex = scene.addMaterial(magenta);
     int cyanIndex = scene.addMaterial(cyan);
     int whiteIndex = scene.addMaterial(white);
-    int perfectReflectorIndex = scene.addMaterial(perfectReflector);
     int lightIndex = scene.addMaterial(light);
 
     ColorDbl tetraColor = ColorDbl(.5, 1., 1.);
@@ -142,19 +151,5 @@ Scene generateTestScene() {
     //scene.addLight(lightTriangle, whiteColor);
 
     return scene;
-}
-
-int main() {
-    Vertex v1 = Vertex(.0, .0, .0, .0);
-    Vertex v2 = Vertex(.0, .0, .1, .1);
-    Vertex v3 = Vertex(.1, .0, .0, .2);
-    ColorDbl color = ColorDbl(1., 1., 1.);
-
-    Scene myScene = generateTestScene();
-
-    Camera camera = Camera(&myScene);
-    camera.render();
-    camera.createImage();
-    return 0;
 }
 

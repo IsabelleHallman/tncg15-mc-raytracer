@@ -16,8 +16,8 @@ struct Pixel {
             : color(colorIn), pixelMiddlePosition(pixelMiddlePositionIn), ray(rayIn) { }
 
     ColorDbl color;
-    Ray ray; //TODO: implement possible to have more rays per pixel
     Vertex pixelMiddlePosition;
+    Ray ray; //TODO: implement possible to have more rays per pixel
 };
 
 template <typename T> class Array2D {
@@ -45,10 +45,7 @@ private:
 
 class Camera {
 public:
-    Camera(Scene* sceneIn, glm::vec3 positionIn = glm::vec3(0.0, 0.0, 0.0),
-           Direction n = Direction(1.0, 0.0, 0.0),
-           float scale = 2,
-           int size = 800)
+    Camera(Scene* sceneIn, glm::vec3 positionIn = glm::vec3(0.0, 0.0, 0.0), float scale = 2, int size = 800)
             : scene(sceneIn), position(positionIn), pixelSize(scale / size),
               frontEye(Vertex(-1.0f, 0.0, 0.0, 1.0)), backEye(Vertex(-2.0f, 0.0, 0.0, 1.0)), frontEyeActive(true),
               topLeft(position + glm::vec3(0.0, - scale / 2, scale / 2)),
@@ -67,6 +64,8 @@ public:
                                                                                      - (pixelSize / 2 + y * pixelSize)));
                 Vertex* activeEye = frontEyeActive ? &frontEye : &backEye;
                 Ray thisRay = Ray(&thisPixelMiddlePosition, Direction(thisPixelMiddlePosition.position - activeEye->position));
+                //scene->findIntersectedTriangle(thisRay);
+                //ColorDbl thisColor = thisRay.intersection->material->color;
                 ColorDbl thisColor = rayTrace.trace(thisRay);
                 Pixel thisPixel = Pixel(thisColor, thisPixelMiddlePosition, thisRay);
                 sensor.set(thisPixel, x, y);
@@ -110,15 +109,15 @@ public:
     }
 
 private:
+    Scene* scene;
+    glm::vec3 position;
+    float pixelSize;
+    Vertex frontEye, backEye;
+    bool frontEyeActive;
+    Vertex topLeft, topRight, bottomLeft, bottomRight;
     const int width = 800;
     const int height = 800;
-    bool frontEyeActive;
-    Vertex frontEye, backEye;
     Array2D<Pixel> sensor;
-    float pixelSize;
-    glm::vec3 position;
-    Scene* scene;
-    Vertex topLeft, topRight, bottomLeft, bottomRight;
 };
 
 #endif //TNCG15_MC_RAYTRACER_CAMERA_H
