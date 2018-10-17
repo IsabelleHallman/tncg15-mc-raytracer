@@ -30,7 +30,7 @@ Scene generateTestScene() {
     Material red = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
 
     ColorDbl greenColor = ColorDbl(0.0, 1.0, 0.0);
-    Material green = Material(greenColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
+    Material green = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
 
     ColorDbl blueColor = ColorDbl(0.0, 0.0, 1.0);
     Material blue = Material(blueColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
@@ -96,16 +96,27 @@ Scene generateTestScene() {
     scene.addTetrahedron(tetraPosition2, &tetraMaterial);
 
     // Implicit spheres
-    Material sphereMaterial = Material(whiteColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
+    Material sphereMaterial = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
     Vertex centerOfSphere = Vertex(glm::vec3(6.f, -2.f, -3.f));
     scene.addImplicitSphere(1.0, centerOfSphere, sphereMaterial);
 
-    // TODO: Perhaps the light triangle should'nt overlap on of the roof triangles
-    Vertex l0 = Vertex(5.0, -2.0, 4.9, 1.0);
+    Vertex l0 = Vertex(5.0, -2.0f, 4.9, 1.0);
     Vertex l1 = Vertex(7.0f, 0.0, 4.9, 1.0);
     Vertex l2 = Vertex(5.0, 2.0f, 4.9, 1.0);
     Triangle lightTriangle = Triangle(l0, l2, l1, scene.getMaterial(whiteIndex));
     scene.addLight(lightTriangle, whiteColor);
+
+    Vertex l3 = Vertex(1.0, -3.0f, 4.95, 1.0);
+    Vertex l4 = Vertex(3.0f, 0.0, 4.95, 1.0);
+    Vertex l5 = Vertex(1.0, 1.0f, 4.95, 1.0);
+    Triangle lightTriangle2 = Triangle(l3, l5, l4, scene.getMaterial(whiteIndex));
+    scene.addLight(lightTriangle2, whiteColor);
+
+    Vertex l6 = Vertex(1.0, -3.0f, -4.95f, 1.0);
+    Vertex l7 = Vertex(3.0f, 0.0, -4.95f, 1.0);
+    Vertex l8 = Vertex(1.0, 1.0f, -4.95f, 1.0);
+    Triangle lightTriangle3 = Triangle(l6, l7, l8, scene.getMaterial(whiteIndex));
+    scene.addLight(lightTriangle3, whiteColor);
 
     return scene;
 }
