@@ -6,8 +6,7 @@
 #define TNCG15_MC_RAYTRACER_RAYTRACE_H
 #include "Scene.h"
 
-class RayTrace
-{
+class RayTrace {
 public:
     RayTrace(Scene* sceneIn) : scene(sceneIn){ }
 
@@ -18,13 +17,12 @@ public:
         // TODO contributions (direct and indirect light)
         // TODO: Calculate direct light in leaves and propogate that up to the root
 
-        Light* light = scene->getLight();
+        // THIS SHOULD BE REPLACED BY COMPUTATIONS USING THE RAY TREE
+        //glm::vec3 directLight = calculateDirectLight(root.ray.intersection, &root.ray);
+
 
         // THIS SHOULD BE REPLACED BY COMPUTATIONS USING THE RAY TREE
-        glm::vec3 sum = glm::vec3(0.0);
-        for (int i = 0; i < 10; i++)
-            sum += sendShadowRay(light, root.ray.intersection, &root.ray);
-        sum *= 0.1 * light->lightTriangle.area;
+        glm::vec3 sum = calculateDirectLight(root.ray.intersection, &root.ray);
         return root.ray.intersection->material->color * sum;
     }
 
@@ -57,6 +55,22 @@ private:
         return root;
     }
 
+    glm::vec3 calculateDirectLight(Intersection* intersection, Ray* ray) {
+        // TODO: fix bugs
+        glm::vec3 allLightsContributions = glm::vec3(0.0);
+        int numRays = 2;
+
+        for (auto iterator = scene->lightBegin(); iterator != scene->lightEnd(); ++iterator) {
+            glm::vec3 singleLightContribution = glm::vec3(0.0);
+            Light* light = &*iterator;
+            for (int i = 0; i < numRays; i++)
+                singleLightContribution += sendShadowRay(light, ray->intersection, ray);
+            singleLightContribution *= (1.0 / numRays) * light->lightTriangle.area;
+            allLightsContributions += singleLightContribution;
+        }
+        return allLightsContributions;
+    }
+
     Ray getReflectedRay(Ray &incomingRay) {
         // TODO: Introduce Monte Carlo scheme by using random directions (slide 209)
         glm::vec3 reflectedDir = glm::reflect(incomingRay.direction.vector, incomingRay.intersection->normal.vector);
@@ -82,9 +96,6 @@ private:
         float cosBeta = glm::dot(s, intersection->normal.vector);
 
         float g = glm::abs(cosAlpha) * glm::abs(cosBeta) / (d * d);
-
-        if (g < 0)
-            std::cout << "it's negative" << std::endl;
 
         glm::vec3 brdfResult = intersection->material->getBRDF(intersection->position, shadowRay.direction, ray->direction);
 

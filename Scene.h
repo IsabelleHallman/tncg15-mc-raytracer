@@ -70,9 +70,12 @@ public:
         return &(materials.at(index));
     }
 
-    // TODO: Implement iterator over scene lights to hide light data structure
-    Light* getLight(){
-        return &lights.front();
+    std::list<Light>::iterator lightBegin() {
+        return lights.begin();
+    }
+
+    std::list<Light>::iterator lightEnd() {
+        return lights.end();
     }
 
 private:
