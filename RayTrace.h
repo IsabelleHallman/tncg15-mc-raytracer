@@ -18,12 +18,12 @@ public:
         // TODO: Calculate direct light in leaves and propogate that up to the root
 
         // THIS SHOULD BE REPLACED BY COMPUTATIONS USING THE RAY TREE
-        //glm::vec3 directLight = calculateDirectLight(root.ray.intersection, &root.ray);
-
-
-        // THIS SHOULD BE REPLACED BY COMPUTATIONS USING THE RAY TREE
-        glm::vec3 sum = calculateDirectLight(root.ray.intersection, &root.ray);
-        return root.ray.intersection->material->color * sum;
+        glm::vec3 directLight = calculateDirectLight(root.ray.intersection, &root.ray);
+        ColorDbl newColor = root.ray.intersection->material->color * directLight;
+        if (newColor.g > 1.) {
+            std::cout << "This is very green" << std::endl;
+        }
+        return newColor;
     }
 
 private:
@@ -58,7 +58,7 @@ private:
     glm::vec3 calculateDirectLight(Intersection* intersection, Ray* ray) {
         // TODO: fix bugs
         glm::vec3 allLightsContributions = glm::vec3(0.0);
-        int numRays = 2;
+        int numRays = 1;
 
         for (auto iterator = scene->lightBegin(); iterator != scene->lightEnd(); ++iterator) {
             glm::vec3 singleLightContribution = glm::vec3(0.0);
@@ -68,6 +68,7 @@ private:
             singleLightContribution *= (1.0 / numRays) * light->lightTriangle.area;
             allLightsContributions += singleLightContribution;
         }
+
         return allLightsContributions;
     }
 
@@ -85,8 +86,8 @@ private:
     glm::vec3 sendShadowRay(Light* light, Intersection* intersection, Ray* ray) {
         Vertex pointOnLight = light->getRandomPointOnLight();
         glm::vec3 s = pointOnLight.position - intersection->position.position;
-
-        Ray shadowRay = Ray(&intersection->position, Direction(s));
+        Vertex startPoint = Vertex(intersection->position.position + EPSILON * glm::normalize(s));
+        Ray shadowRay = Ray(&startPoint, Direction(s));
         if (!scene->findIntersectedTriangle(shadowRay) || shadowRay.intersection->position != pointOnLight)
             return glm::vec3(0.0);
 
