@@ -21,9 +21,6 @@ public:
         if (root.ray.intersection->material->type == LIGHT) return root.ray.intersection->material->color;
         glm::vec3 directLight = calculateDirectLight(root.ray.intersection, &root.ray);
         ColorDbl newColor = root.ray.intersection->material->color * directLight;
-        if (newColor.g > 1.) {
-         //   std::cout << "This is very green" << std::endl;
-        }
         return newColor;
     }
 
