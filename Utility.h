@@ -105,26 +105,24 @@ struct ColorDbl {
 };
 
 struct Material {
-    Material() : color(ColorDbl()), alpha(1.0), specular(0.0), type(LAMBERTIAN), rho(0.5) {}
+    Material() : color(ColorDbl()), alpha(1.0), specular(0.0), type(LAMBERTIAN), rho(glm::vec3(0.5)) {}
 
-    Material(ColorDbl colorIn, float alphaIn, float specularIn, int typeIn, float rhoIn)
+    Material(ColorDbl colorIn, float alphaIn, float specularIn, int typeIn, glm::vec3 rhoIn)
             : color(colorIn), alpha(alphaIn), specular(specularIn), type(typeIn), rho(rhoIn) {}
 
-    // TODO: Should this return a glm:vec3 instead (R,G,B)? So it becomes how much
-    // TODO  it reflects in the different cannels
-    double getBRDF(Vertex x, Direction wIn, Direction wOut) {
+    glm::vec3 getBRDF(Vertex x, Direction wIn, Direction wOut) {
         switch (type) {
             case LAMBERTIAN:
                 // TODO: Use different values of pho for R, G, B
                 return rhoOverPi;
             case OREN_NAYAR:
                 // TODO: Implement Oren-Nayar reflector
-                return 1.0;
+                return glm::vec3(1.0);
             case PERFECT_REFLECTOR:
                 // TODO: In case
-                return 1.0;
+                return glm::vec3(1.0);
             default:
-                return 0.0;
+                return glm::vec3(0.0);
         }
     }
 
@@ -132,8 +130,8 @@ struct Material {
     float alpha;
     float specular;
     int type;
-    float rho;
-    double rhoOverPi = rho * glm::one_over_pi<float>();
+    glm::vec3 rho;
+    glm::vec3 rhoOverPi = glm::one_over_pi<float>() * rho;
 };
 
 struct Intersection {

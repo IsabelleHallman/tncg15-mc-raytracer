@@ -27,25 +27,25 @@ Scene generateTestScene() {
             };
 
     ColorDbl redColor = ColorDbl(1.0, 0.0, 0.0);
-    Material red = Material(redColor, 1.0, 0.0, LAMBERTIAN, 0.5);
+    Material red = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
 
     ColorDbl greenColor = ColorDbl(0.0, 1.0, 0.0);
-    Material green = Material(greenColor, 1.0, 0.0, LAMBERTIAN, 0.5);
+    Material green = Material(greenColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
 
     ColorDbl blueColor = ColorDbl(0.0, 0.0, 1.0);
-    Material blue = Material(blueColor, 1.0, 0.0, LAMBERTIAN, 0.5);
+    Material blue = Material(blueColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
 
     ColorDbl yellowColor = ColorDbl(1.0, 1.0, 0.0);
-    Material yellow = Material(yellowColor, 1.0, 0.0, LAMBERTIAN, 0.5);
+    Material yellow = Material(yellowColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
 
     ColorDbl magentaColor = ColorDbl(1.0, 0.0, 1.0);
-    Material magenta = Material(magentaColor, 1.0, 0.0, LAMBERTIAN, 0.5);
+    Material magenta = Material(magentaColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
 
     ColorDbl cyanColor = ColorDbl(0.0, 1.0, 1.0);
-    Material cyan = Material(cyanColor, 1.0, 0.0, LAMBERTIAN, 0.5);
+    Material cyan = Material(cyanColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
 
     ColorDbl whiteColor = ColorDbl(1.0, .9, 1.0);
-    Material white = Material(whiteColor, 1.0, 0.0, LAMBERTIAN, 0.5);
+    Material white = Material(whiteColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
 
     Scene scene = Scene();
 
@@ -89,14 +89,14 @@ Scene generateTestScene() {
     // Tetrahedron Objects
     Vertex tetraPosition = Vertex(glm::vec3(8.0, 3.0, -2.0));
     ColorDbl tetraColor = ColorDbl(.5, 1., 1.);
-    Material tetraMaterial = Material(tetraColor, 1.0, 0.0, LAMBERTIAN, 0.5);
+    Material tetraMaterial = Material(tetraColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
     scene.addTetrahedron(tetraPosition, &tetraMaterial);
 
     Vertex tetraPosition2 = Vertex(glm::vec3(8.0, 0.0, 0.0));
     scene.addTetrahedron(tetraPosition2, &tetraMaterial);
 
     // Implicit spheres
-    Material sphereMaterial = Material(whiteColor, 1.0, 0.0, PERFECT_REFLECTOR, 1.0);
+    Material sphereMaterial = Material(whiteColor, 1.0, 0.0, PERFECT_REFLECTOR, glm::vec3(1.0));
     Vertex centerOfSphere = Vertex(glm::vec3(6.f, -2.f, -3.f));
     scene.addImplicitSphere(1.0, centerOfSphere, sphereMaterial);
 
