@@ -18,7 +18,7 @@ public:
 
     Scene() : defaultMaterial(Material()) { };
 
-    void findIntersectedTriangle(Ray &ray) {
+    bool findIntersectedTriangle(Ray &ray) {
         for (auto iterator = walls.begin(); iterator != walls.end(); ++iterator) {
             iterator->rayIntersection(ray);
         }
@@ -32,14 +32,15 @@ public:
         }
 
         for (auto iterator = lights.begin(); iterator != lights.end(); ++iterator) {
-            (iterator)->areaLight.rayIntersection(ray);
+            (iterator)->lightTriangle.rayIntersection(ray);
         }
 
         // TODO: Sometimes the ray hits inbetween two triangles (where it should not be any space), rounding error?
         if(!ray.intersection) {
             ray.intersection = new Intersection(Vertex(), Direction(), &defaultMaterial, 10000);
+            return false;
         }
-
+        return true;
     }
 
     void addWalls(std::list<Triangle>& trianglesIn) {
@@ -69,9 +70,12 @@ public:
         return &(materials.at(index));
     }
 
-    // TODO: Implement iterator over scene lights to hide light data structure
-    Light* getLight(){
-        return &lights.front();
+    std::list<Light>::iterator lightBegin() {
+        return lights.begin();
+    }
+
+    std::list<Light>::iterator lightEnd() {
+        return lights.end();
     }
 
 private:

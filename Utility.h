@@ -19,7 +19,7 @@ struct Tetrahedron;
 struct ImplicitSphere;
 struct Light;
 
-const float EPSILON = 1e-6;
+const float EPSILON = 1e-4;
 
 const int LAMBERTIAN = 0;
 const int OREN_NAYAR = 1;
@@ -43,6 +43,10 @@ struct Vertex {
         return (glm::abs(position.x - b.position.x) < EPSILON
                 && glm::abs(position.y - b.position.y) < EPSILON
                 && glm::abs(position.z - b.position.z) < EPSILON);
+    }
+
+    bool operator!=(const Vertex& b) const {
+        return !(*this == b);
     }
 
     float w;
@@ -80,9 +84,9 @@ struct ColorDbl {
     double r, g, b;
 
     ColorDbl& operator+=(const ColorDbl& other) {
-        r += other.r;
-        g += other.g;
-        b += other.b;
+        glm::clamp(r += other.r, 0.0, 1.0);
+        glm::clamp(g += other.g, 0.0, 1.0);
+        glm::clamp(b += other.b, 0.0, 1.0);
         return *this;
     }
 
@@ -102,29 +106,31 @@ struct ColorDbl {
                && glm::abs(other.g - g) < EPSILON
                && glm::abs(other.b - b) < EPSILON;
     }
+
+    ColorDbl operator*(const glm::vec3& other) const {
+        return ColorDbl(glm::clamp(r * other.r, 0.0, 1.0), glm::clamp(g * other.g, 0.0, 1.0), glm::clamp(b * other.b, 0.0, 1.0));
+    }
 };
 
 struct Material {
-    Material() : color(ColorDbl()), alpha(1.0), specular(0.0), type(LAMBERTIAN), rho(0.5) {}
+    Material() : color(ColorDbl()), alpha(1.0), specular(0.0), type(LAMBERTIAN), rho(glm::vec3(0.5)) {}
 
-    Material(ColorDbl colorIn, float alphaIn, float specularIn, int typeIn, float rhoIn)
+    Material(ColorDbl colorIn, float alphaIn, float specularIn, int typeIn, glm::vec3 rhoIn)
             : color(colorIn), alpha(alphaIn), specular(specularIn), type(typeIn), rho(rhoIn) {}
 
-    // TODO: Should this return a glm:vec3 instead (R,G,B)? So it becomes how much
-    // TODO  it reflects in the different cannels
-    double getBRDF(Vertex x, Direction wIn, Direction wOut) {
+    glm::vec3 getBRDF(Vertex x, Direction wIn, Direction wOut) {
         switch (type) {
             case LAMBERTIAN:
                 // TODO: Use different values of pho for R, G, B
                 return rhoOverPi;
             case OREN_NAYAR:
                 // TODO: Implement Oren-Nayar reflector
-                return 1.0;
+                return glm::vec3(1.0);
             case PERFECT_REFLECTOR:
                 // TODO: In case
-                return 1.0;
+                return glm::vec3(1.0);
             default:
-                return 0.0;
+                return glm::vec3(0.0);
         }
     }
 
@@ -132,8 +138,8 @@ struct Material {
     float alpha;
     float specular;
     int type;
-    float rho;
-    double rhoOverPi = rho * glm::one_over_pi<float>();
+    glm::vec3 rho;
+    glm::vec3 rhoOverPi = glm::one_over_pi<float>() * rho;
 };
 
 struct Intersection {
@@ -165,10 +171,18 @@ struct Ray {
 
 struct Triangle {
     Triangle() : v1(Vertex()), v2(Vertex()), v3(Vertex()), normal(Direction()),
-                 material(new Material()) {}
+                 material(new Material()) {
+        edge1 = v2.position - v1.position;
+        edge2 =  v3.position - v1.position;
+        area = 0.5 * glm::length(glm::cross(edge1, edge2));
+        computeNormal();
+    }
 
     Triangle(Vertex &v1In, Vertex &v2In, Vertex &v3In, Material* materialIn)
             : v1(v1In), v2(v2In), v3(v3In), normal(Direction(.0, .0, .0)), material(materialIn) {
+        edge1 = v2.position - v1.position;
+        edge2 =  v3.position - v1.position;
+        area = 0.5 * glm::length(glm::cross(edge1, edge2));
         computeNormal();
     }
 
@@ -217,10 +231,11 @@ struct Triangle {
     Vertex v1, v2, v3;
     Material* material;
     Direction normal;
+    float area;
 
 private:
-    glm::vec3 edge1 = v2.position - v1.position;
-    glm::vec3 edge2 = v3.position - v1.position;
+    glm::vec3 edge1;
+    glm::vec3 edge2;
 
     void computeNormal() {
         glm::vec3 normalVec = glm::normalize(glm::cross(edge1, edge2));
@@ -273,29 +288,45 @@ public:
 
     bool rayIntersection(Ray &ray) {
         float a = 1; // Dot product of rays direction with itself
-        glm::vec3 dirRayOriginToCenter = ray.startPoint->position - center.position;
-        float b = glm::dot((2.f * ray.direction.vector),dirRayOriginToCenter);
+        glm::vec3 dirRayOriginToCenter = ray.startPoint->position - center.position; //L
+        float b = glm::dot((2.f * ray.direction.vector), dirRayOriginToCenter);
         float c = glm::dot(dirRayOriginToCenter, dirRayOriginToCenter) - radiusSquared;
 
-        float discriminant = glm::pow(b/2, 2) - a*c;
-        if (discriminant < 0.f)
-            return false;
+        float d0, d1;
+        if (!solveQuadratic(a, b, c, d0, d1)) return false;
 
-        float d = -b/2 + glm::sqrt(discriminant);
-        if (d < 0.f)
-            d = -b/2 - glm::sqrt(discriminant);
+        if (d0 > d1) std::swap(d0, d1);
 
-        if (d < 0.f)
-            return false;
+        if (d0 < 0) {
+            d0 = d1;
+            if (d0 < 0) return false;
+        }
 
-        Vertex intersectionPoint = Vertex(ray.startPoint->position + d * ray.direction.vector);
+        Vertex intersectionPoint = Vertex(ray.startPoint->position + d0 * ray.direction.vector);
         ray.intersection = new Intersection(intersectionPoint, Direction(intersectionPoint.position - center.position),
-                                            &material, d);
+                                            &material, d0);
         return true;
     }
 
     bool evaluate(glm::vec3 position) {
         return (glm::pow(glm::length(position - center.position), 2) == radiusSquared);
+    }
+
+    bool solveQuadratic(const float &a, const float &b, const float &c, float &x0, float &x1) {
+        // Source: https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection
+        float discr = b * b - 4 * a * c;
+        if (discr < 0) return false;
+        else if (discr == 0) x0 = x1 = - 0.5 * b / a;
+        else {
+            float q = (b > 0) ?
+                      -0.5 * (b + sqrt(discr)) :
+                      -0.5 * (b - sqrt(discr));
+            x0 = q / a;
+            x1 = c / q;
+        }
+        if (x0 > x1) std::swap(x0, x1);
+
+        return true;
     }
 
 private:
@@ -306,20 +337,18 @@ private:
 };
 
 struct Light {
-    Light(Triangle& areaLightIn, ColorDbl colorIn)
-            : areaLight(areaLightIn), color(colorIn) { }
+    Light(Triangle& lightTriangleIn, ColorDbl colorIn)
+            : lightTriangle(lightTriangleIn), color(colorIn) { }
 
     Vertex getRandomPointOnLight(){
-        float randomU = ((float) rand() / (RAND_MAX));
-        float randomV = 1 - randomU;
+        float random = glm::clamp((float) std::rand()/ RAND_MAX, 0.01f, 0.99f);
+        float randomU = random / ((std::rand() % 8) + 2);
+        float randomV = random - randomU;
 
-        glm::vec3 edge1 = areaLight.v2.position - areaLight.v1.position;
-        glm::vec3 edge2 = areaLight.v3.position - areaLight.v1.position;
-
-        return Vertex(randomU * edge1 + randomV * edge2);
+        return lightTriangle.getPointOnTriangle(randomU, randomV);
     }
 
     ColorDbl color;
-    Triangle areaLight;
+    Triangle lightTriangle;
 };
 
