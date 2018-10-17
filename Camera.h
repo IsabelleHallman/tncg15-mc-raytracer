@@ -78,17 +78,37 @@ public:
     void createImage() {
         FILE *f = fopen("cameraOut.ppm", "wb");
         fprintf(f, "P6\n%i %i 255\n", width, height);
+
+        double iMax = findIMax();
+        float normFactor = 255.99 / iMax;
+
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 // TODO: truncate colors (divide by maxI for entire image)
                 // TODO: should the division be by the radiance of the light sources?
                 Pixel* thisPixel = sensor.get(x, y);
-                fputc((int) (thisPixel->color.r * 255.0), f);
-                fputc((int) (thisPixel->color.g * 255.0), f);
-                fputc((int) (thisPixel->color.b * 255.0), f);
+                fputc((int) (thisPixel->color.r * normFactor), f);
+                fputc((int) (thisPixel->color.g * normFactor), f);
+                fputc((int) (thisPixel->color.b * normFactor), f);
             }
         }
         fclose(f);
+    }
+
+    double findIMax() {
+        //TODO: More effective way to do this?
+        double iMax = 0.0;
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                Pixel* thisPixel = sensor.get(x, y);
+                if (thisPixel->color.r > iMax) iMax = thisPixel->color.r;
+                if (thisPixel->color.g > iMax) iMax = thisPixel->color.g;
+                if (thisPixel->color.b > iMax) iMax = thisPixel->color.b;
+            }
+        }
+
+        return iMax;
     }
 
 private:

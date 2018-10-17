@@ -84,9 +84,9 @@ struct ColorDbl {
     double r, g, b;
 
     ColorDbl& operator+=(const ColorDbl& other) {
-        glm::clamp(r += other.r, 0.0, 1.0);
-        glm::clamp(g += other.g, 0.0, 1.0);
-        glm::clamp(b += other.b, 0.0, 1.0);
+        r += other.r;
+        g += other.g;
+        b += other.b;
         return *this;
     }
 
@@ -108,7 +108,7 @@ struct ColorDbl {
     }
 
     ColorDbl operator*(const glm::vec3& other) const {
-        return ColorDbl(glm::clamp(r * other.r, 0.0, 1.0), glm::clamp(g * other.g, 0.0, 1.0), glm::clamp(b * other.b, 0.0, 1.0));
+        return ColorDbl(r * other.r, g * other.g, b * other.b);
     }
 };
 
