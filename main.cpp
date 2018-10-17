@@ -30,7 +30,7 @@ Scene generateTestScene() {
     Material red = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
 
     ColorDbl greenColor = ColorDbl(0.0, 1.0, 0.0);
-    Material green = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
+    Material green = Material(greenColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
 
     ColorDbl blueColor = ColorDbl(0.0, 0.0, 1.0);
     Material blue = Material(blueColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
@@ -99,6 +99,9 @@ Scene generateTestScene() {
     Material sphereMaterial = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
     Vertex centerOfSphere = Vertex(glm::vec3(6.f, -2.f, -3.f));
     scene.addImplicitSphere(1.0, centerOfSphere, sphereMaterial);
+
+    Vertex centerOfSphere2 = Vertex(glm::vec3(8.f, 3.f, 4.f));
+    scene.addImplicitSphere(1.0, centerOfSphere2, sphereMaterial);
 
     Vertex l0 = Vertex(5.0, -2.0f, 4.9, 1.0);
     Vertex l1 = Vertex(7.0f, 0.0, 4.9, 1.0);
