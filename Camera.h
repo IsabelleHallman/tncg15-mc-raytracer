@@ -67,6 +67,8 @@ public:
                                                                                      - (pixelSize / 2 + y * pixelSize)));
                 Vertex* activeEye = frontEyeActive ? &frontEye : &backEye;
                 Ray thisRay = Ray(&thisPixelMiddlePosition, Direction(thisPixelMiddlePosition.position - activeEye->position));
+                if (x == 191 && y == 726)
+                    std::cout << "got here" << std::endl;
                 ColorDbl thisColor = rayTrace.trace(thisRay);
                 Pixel thisPixel = Pixel(thisColor, thisPixelMiddlePosition, thisRay);
                 sensor.set(thisPixel, x, y);

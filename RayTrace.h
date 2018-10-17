@@ -22,13 +22,10 @@ public:
 
         // THIS SHOULD BE REPLACED BY COMPUTATIONS USING THE RAY TREE
         glm::vec3 sum = glm::vec3(0.0);
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < 10; i++)
             sum += sendShadowRay(light, root.ray.intersection, &root.ray);
-        sum *= light->lightTriangle.area / 2;
+        sum *= 0.1 * light->lightTriangle.area;
         return root.ray.intersection->material->color * sum;
-            return ColorDbl(0,0,0);
-        // TODO: L0/2 (azimuth2 - azimuth1) (sin2theta2 - sin2theta1) (slide 19)
-        return root.ray.intersection->material->color;
     }
 
 private:
@@ -47,7 +44,7 @@ private:
     Node createRayTree(Ray &ray) {
         Node root = Node(nullptr, ray);
         scene->findIntersectedTriangle(root.ray);
-        Node* next = &root;
+       /* Node* next = &root;
 
         // TODO: Terminate ray by russian roulette if we are on diffuse surfaces
         // TODO: The ray should not be terminated on reflecting or refracting surfaces
@@ -56,7 +53,7 @@ private:
             next->reflected = new Node(next, getReflectedRay(next->ray));
             scene->findIntersectedTriangle(next->reflected->ray);
             next = next->reflected;
-        }
+        }*/
         return root;
     }
 
@@ -71,21 +68,6 @@ private:
         return Ray();
     }
 
-    // Send shadow rays
-    bool isInShadow(Vertex& intersectionPoint) {
-        Light* light = scene->getLight();
-        Vertex pointOnLight = light->getRandomPointOnLight();
-
-        Ray shadowRay = Ray(&intersectionPoint, Direction(pointOnLight.position - intersectionPoint.position));
-
-        scene->findIntersectedTriangle(shadowRay);
-
-        if(shadowRay.intersection && shadowRay.intersection->position == pointOnLight)
-            return false;
-
-        return true;
-    }
-
     glm::vec3 sendShadowRay(Light* light, Intersection* intersection, Ray* ray) {
         Vertex pointOnLight = light->getRandomPointOnLight();
         glm::vec3 s = pointOnLight.position - intersection->position.position;
@@ -94,11 +76,15 @@ private:
         if (!scene->findIntersectedTriangle(shadowRay) || shadowRay.intersection->position != pointOnLight)
             return glm::vec3(0.0);
 
+        float d = glm::length(s);
+        //s = glm::normalize(s);
         float cosAlpha = - glm::dot(s, light->lightTriangle.normal.vector);
         float cosBeta = glm::dot(s, intersection->normal.vector);
-        float d = glm::length(s);
 
-        float g = cosAlpha * cosBeta / (d * d);
+        float g = glm::abs(cosAlpha) * glm::abs(cosBeta) / (d * d);
+
+        if (g < 0)
+            std::cout << "it's negative" << std::endl;
 
         glm::vec3 brdfResult = intersection->material->getBRDF(intersection->position, shadowRay.direction, ray->direction);
 
