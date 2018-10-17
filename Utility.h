@@ -24,6 +24,7 @@ const float EPSILON = 1e-4;
 const int LAMBERTIAN = 0;
 const int OREN_NAYAR = 1;
 const int PERFECT_REFLECTOR = 2;
+const int LIGHT = 3;
 
 
 
@@ -283,7 +284,7 @@ struct Tetrahedron : MeshObject {
 struct ImplicitSphere {
 
 public:
-    ImplicitSphere(float radiusIn, Vertex centerPos, Material materialIn)
+    ImplicitSphere(float radiusIn, Vertex centerPos, Material* materialIn)
             : radius(radiusIn), center(centerPos), material(materialIn), radiusSquared(glm::pow(radiusIn, 2)) { }
 
     bool rayIntersection(Ray &ray) {
@@ -304,7 +305,7 @@ public:
 
         Vertex intersectionPoint = Vertex(ray.startPoint->position + d0 * ray.direction.vector);
         ray.intersection = new Intersection(intersectionPoint, Direction(intersectionPoint.position - center.position),
-                                            &material, d0);
+                                            material, d0);
         return true;
     }
 
@@ -333,7 +334,7 @@ private:
     float radius;
     float radiusSquared;
     Vertex center;
-    Material material;
+    Material* material;
 };
 
 struct Light {
