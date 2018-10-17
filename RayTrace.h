@@ -54,9 +54,8 @@ private:
     }
 
     glm::vec3 calculateDirectLight(Intersection* intersection, Ray* ray) {
-        // TODO: fix bugs
         glm::vec3 allLightsContributions = glm::vec3(0.0);
-        int numRays = 1;
+        int numRays = 3;
 
         for (auto iterator = scene->lightBegin(); iterator != scene->lightEnd(); ++iterator) {
             glm::vec3 singleLightContribution = glm::vec3(0.0);
