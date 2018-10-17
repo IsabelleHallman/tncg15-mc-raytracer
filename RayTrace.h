@@ -21,6 +21,7 @@ public:
         // THIS SHOULD BE REPLACED BY COMPUTATIONS USING THE RAY TREE
         if(isInShadow(root.ray.intersection->position))
             return ColorDbl(0,0,0);
+        // TODO: L0/2 (azimuth2 - azimuth1) (sin2theta2 - sin2theta1) (slide 19)
         return root.ray.intersection->material->color;
     }
 

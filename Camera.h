@@ -81,6 +81,7 @@ public:
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 // TODO: truncate colors (divide by maxI for entire image)
+                // TODO: should the division be by the radiance of the light sources?
                 Pixel* thisPixel = sensor.get(x, y);
                 fputc((int) (thisPixel->color.r * 255.0), f);
                 fputc((int) (thisPixel->color.g * 255.0), f);
