@@ -58,7 +58,8 @@ Scene generateTestScene() {
     int magentaIndex = scene.addMaterial(magenta);
     int cyanIndex = scene.addMaterial(cyan);
     int whiteIndex = scene.addMaterial(white);
-    int lightIndex = scene.addMaterial(light);
+    //int lightIndex = scene.addMaterial(light);
+    int lightIndex = 0;
 
     std::list<Triangle> sceneTriangles = {
             Triangle(sceneVertices.at(0), sceneVertices.at(2), sceneVertices.at(1), scene.getMaterial(redIndex)),
@@ -120,7 +121,7 @@ Scene generateTestScene() {
     Vertex l4 = Vertex(3.0f, 0.0, 4.95, 1.0);
     Vertex l5 = Vertex(1.0, 1.0f, 4.95, 1.0);
     Triangle lightTriangle2 = Triangle(l3, l5, l4, scene.getMaterial(lightIndex));
-    scene.addLight(lightTriangle2, whiteColor);
+    //scene.addLight(lightTriangle2, whiteColor);
 
     Vertex l6 = Vertex(1.0, -3.0f, -4.95f, 1.0);
     Vertex l7 = Vertex(3.0f, 0.0, -4.95f, 1.0);
@@ -132,7 +133,7 @@ Scene generateTestScene() {
     Vertex l10 = Vertex(7.0f, 0.0, -4.9f, 1.0);
     Vertex l11 = Vertex(5.0, 2.0f, -4.9f, 1.0);
     Triangle lightTriangle4 = Triangle(l9, l11, l10, scene.getMaterial(lightIndex));
-    scene.addLight(lightTriangle, whiteColor);
+    //scene.addLight(lightTriangle, whiteColor);
 
     return scene;
 }

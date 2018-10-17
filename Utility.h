@@ -130,6 +130,8 @@ struct Material {
             case PERFECT_REFLECTOR:
                 // TODO: In case
                 return glm::vec3(1.0);
+            case LIGHT:
+                return rhoOverPi;
             default:
                 return glm::vec3(0.0);
         }
