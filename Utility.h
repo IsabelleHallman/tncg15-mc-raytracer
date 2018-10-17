@@ -81,6 +81,8 @@ struct ColorDbl {
 
     ColorDbl(double rIn, double gIn, double bIn) : r(rIn), g(gIn), b(bIn) { }
 
+    ColorDbl(glm::vec3 color) : r(color.r), g(color.g), b(color.b) {}
+
     double r, g, b;
 
     ColorDbl& operator+=(const ColorDbl& other) {
@@ -158,11 +160,6 @@ struct Ray {
             : startPoint(startIn), direction(directionIn), intersection(nullptr) { }
 
     Ray() : startPoint(nullptr), direction(Direction()), intersection(nullptr) { }
-
-    ~Ray() {
-        if(intersection)
-            delete intersection;
-    }
 
     Vertex* startPoint;
     Direction direction;
@@ -301,6 +298,9 @@ public:
             d0 = d1;
             if (d0 < 0) return false;
         }
+
+        if(abs(d0) < EPSILON)
+            return false;
 
         Vertex intersectionPoint = Vertex(ray.startPoint->position + d0 * ray.direction.vector);
         ray.intersection = new Intersection(intersectionPoint, Direction(intersectionPoint.position - center.position),

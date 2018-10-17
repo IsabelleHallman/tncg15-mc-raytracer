@@ -47,6 +47,8 @@ Scene generateTestScene() {
     ColorDbl whiteColor = ColorDbl(1.0, .9, 1.0);
     Material white = Material(whiteColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
 
+    Material perfectReflector = Material(whiteColor, 1.0, 0.0, PERFECT_REFLECTOR, glm::vec3(0.5));
+
     Scene scene = Scene();
 
     int redIndex = scene.addMaterial(red);
@@ -56,6 +58,7 @@ Scene generateTestScene() {
     int magentaIndex = scene.addMaterial(magenta);
     int cyanIndex = scene.addMaterial(cyan);
     int whiteIndex = scene.addMaterial(white);
+    int perfectReflectorIndex = scene.addMaterial(perfectReflector);
 
     std::list<Triangle> sceneTriangles = {
             Triangle(sceneVertices.at(0), sceneVertices.at(2), sceneVertices.at(1), scene.getMaterial(redIndex)),
@@ -98,7 +101,7 @@ Scene generateTestScene() {
     // Implicit spheres
     Material sphereMaterial = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
     Vertex centerOfSphere = Vertex(glm::vec3(6.f, -2.f, -3.f));
-    scene.addImplicitSphere(1.0, centerOfSphere, sphereMaterial);
+    scene.addImplicitSphere(1.0, centerOfSphere, perfectReflector);
 
     Vertex centerOfSphere2 = Vertex(glm::vec3(8.f, 3.f, 4.f));
     scene.addImplicitSphere(1.0, centerOfSphere2, sphereMaterial);

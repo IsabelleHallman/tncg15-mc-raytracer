@@ -13,23 +13,19 @@ public:
     ColorDbl trace(Ray &ray){
         Node root = createRayTree(ray);
 
-        // TODO: Go through the created ray tree and add the correct
-        // TODO contributions (direct and indirect light)
-        // TODO: Calculate direct light in leaves and propogate that up to the root
+        glm::vec3 colorContrib = calculateLight(&root);
+        ColorDbl pixelColor = ColorDbl(colorContrib);
 
-        // THIS SHOULD BE REPLACED BY COMPUTATIONS USING THE RAY TREE
-        glm::vec3 directLight = calculateDirectLight(root.ray.intersection, &root.ray);
-        ColorDbl newColor = root.ray.intersection->material->color * directLight;
-        if (newColor.g > 1.) {
-            std::cout << "This is very green" << std::endl;
-        }
-        return newColor;
+        deleteNodes(root);
+        return pixelColor;
     }
 
 private:
     struct Node {
-        Node(Node* parentIn, Ray rayIn)
-                : parent(parentIn), reflected(nullptr), refracted(nullptr), ray(rayIn) {}
+        Node(Node* parentIn, Ray rayIn, Scene* scene)
+                : parent(parentIn), reflected(nullptr), refracted(nullptr), ray(rayIn) {
+            scene->findIntersectedTriangle(ray);
+        }
 
         Node* parent;
         Node* reflected;
@@ -37,21 +33,61 @@ private:
         Ray ray;
     };
 
+    void destroyRecursive(Node *node)
+    {
+        if (node)
+        {
+            destroyRecursive(node->reflected);
+            destroyRecursive(node->refracted);
+            delete node;
+        }
+    }
+
+    void deleteNodes(Node root){
+       // destroyRecursive(root.reflected);
+        //destroyRecursive(root.refracted);
+    }
+
     Scene* scene;
 
-    Node createRayTree(Ray &ray) {
-        Node root = Node(nullptr, ray);
-        scene->findIntersectedTriangle(root.ray);
-       /* Node* next = &root;
+    glm::vec3 calculateLight(Node* currentNode) {
+        glm::vec3 reflectedLight = glm::vec3(0.f), refractedLight = glm::vec3(0.f);
 
-        // TODO: Terminate ray by russian roulette if we are on diffuse surfaces
-        // TODO: The ray should not be terminated on reflecting or refracting surfaces
-        for(int i = 0; i < 3; i++) {
+        if(currentNode->reflected != nullptr)
+            reflectedLight = calculateLight(currentNode->reflected);
+        if(currentNode->refracted != nullptr)
+            refractedLight = calculateLight(currentNode->refracted);
+
+        // In our case, we will only have either reflected or refracted light, never both.
+        glm::vec3 currentLight = reflectedLight + refractedLight;
+
+        // Calculate the contribution from the direct lighting
+        if(currentNode->ray.intersection->material->type == LAMBERTIAN) {
+            ColorDbl currentColorDbl = currentNode->ray.intersection->material->color;
+            glm::vec3 currentColor = glm::vec3(currentColorDbl.r, currentColorDbl.g, currentColorDbl.b);
+
+            glm::vec3 directLight = calculateDirectLight(currentNode->ray.intersection, &currentNode->ray);
+            ColorDbl newColor = currentNode->ray.intersection->material->color * directLight;
+
+            currentLight += (currentColor * directLight);
+        }
+
+        return currentLight;
+    }
+
+    Node createRayTree(Ray &ray) {
+        Node root = Node(nullptr, ray, scene);
+        Node* next = &root;
+
+        int maxIterations = 10;
+        for(int i = 0; i < maxIterations; i++) {
+            if(next->ray.intersection->material->type == LAMBERTIAN)
+                break;
+
             // TODO: ADD refracted rays as well.
-            next->reflected = new Node(next, getReflectedRay(next->ray));
-            scene->findIntersectedTriangle(next->reflected->ray);
+            next->reflected = new Node(next, getReflectedRay(next->ray), scene);
             next = next->reflected;
-        }*/
+        }
         return root;
     }
 
