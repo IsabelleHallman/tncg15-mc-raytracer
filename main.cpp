@@ -58,8 +58,17 @@ Scene generateTestScene() {
     int magentaIndex = scene.addMaterial(magenta);
     int cyanIndex = scene.addMaterial(cyan);
     int whiteIndex = scene.addMaterial(white);
-    //int lightIndex = scene.addMaterial(light);
-    int lightIndex = 0;
+    int lightIndex = scene.addMaterial(light);
+
+    ColorDbl tetraColor = ColorDbl(.5, 1., 1.);
+    Material tetraMaterial = Material(tetraColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
+    int tetraMaterialIndex = scene.addMaterial(tetraMaterial);
+
+
+    // Moving these lines below sceneTriangles creation causes weird errors on the scene materials. Memory conflict?
+    Material sphereMaterial = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
+    int sphereMaterialIndex = scene.addMaterial(sphereMaterial);
+
 
     std::list<Triangle> sceneTriangles = {
             Triangle(sceneVertices.at(0), sceneVertices.at(2), sceneVertices.at(1), scene.getMaterial(redIndex)),
@@ -92,20 +101,13 @@ Scene generateTestScene() {
 
     // Tetrahedron Objects
     Vertex tetraPosition = Vertex(glm::vec3(8.0, 3.0, -2.0));
-    ColorDbl tetraColor = ColorDbl(.5, 1., 1.);
-    Material tetraMaterial = Material(tetraColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(0.5));
-    int tetraMaterialIndex = scene.addMaterial(tetraMaterial);
-
     scene.addTetrahedron(tetraPosition, scene.getMaterial(tetraMaterialIndex));
 
     Vertex tetraPosition2 = Vertex(glm::vec3(8.0, 0.0, 0.0));
-    scene.addTetrahedron(tetraPosition2, &tetraMaterial);
+    scene.addTetrahedron(tetraPosition2, scene.getMaterial(tetraMaterialIndex));
 
     // Implicit spheres
-    Material sphereMaterial = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
     Vertex centerOfSphere = Vertex(glm::vec3(6.f, -2.f, -3.f));
-    int sphereMaterialIndex = scene.addMaterial(sphereMaterial);
-
     scene.addImplicitSphere(1.0, centerOfSphere, scene.getMaterial(sphereMaterialIndex));
 
     Vertex centerOfSphere2 = Vertex(glm::vec3(8.f, 3.f, 4.f));
