@@ -68,9 +68,7 @@ private:
     // Send shadow rays
     bool isInShadow(Vertex& intersectionPoint){
         Light* light = scene->getLight();
-        float random = glm::clamp((float) std::rand()/ RAND_MAX, 0.01f, 0.99f);
-        float random1 = random / ((std::rand() % 8) + 2);
-        Vertex pointOnLight = (light->areaLight).getPointOnTriangle(random1, random - random1);
+        Vertex pointOnLight = light->getRandomPointOnLight();
 
         Ray shadowRay = Ray(&intersectionPoint, Direction(pointOnLight.position - intersectionPoint.position));
 

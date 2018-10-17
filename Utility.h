@@ -215,6 +215,7 @@ struct Triangle {
     Vertex v1, v2, v3;
     Material* material;
     Direction normal;
+    float area = 0.5 * glm::length(glm::cross(edge1, edge2));
 
 private:
     glm::vec3 edge1 = v2.position - v1.position;
@@ -304,20 +305,18 @@ private:
 };
 
 struct Light {
-    Light(Triangle& areaLightIn, ColorDbl colorIn)
-            : areaLight(areaLightIn), color(colorIn) { }
+    Light(Triangle& lightTriangleIn, ColorDbl colorIn)
+            : lightTriangle(lightTriangleIn), color(colorIn) { }
 
     Vertex getRandomPointOnLight(){
-        float randomU = ((float) rand() / (RAND_MAX));
-        float randomV = 1 - randomU;
+        float random = glm::clamp((float) std::rand()/ RAND_MAX, 0.01f, 0.99f);
+        float randomU = random / ((std::rand() % 8) + 2);
+        float randomV = random - randomU;
 
-        glm::vec3 edge1 = areaLight.v2.position - areaLight.v1.position;
-        glm::vec3 edge2 = areaLight.v3.position - areaLight.v1.position;
-
-        return Vertex(randomU * edge1 + randomV * edge2);
+        return lightTriangle.getPointOnTriangle(randomU, randomV);
     }
 
     ColorDbl color;
-    Triangle areaLight;
+    Triangle lightTriangle;
 };
 
