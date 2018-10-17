@@ -52,7 +52,7 @@ public:
         objects.push_back(tetrahedron);
     }
 
-    void addImplicitSphere(float radius, Vertex position, Material material) {
+    void addImplicitSphere(float radius, Vertex position, Material* material) {
         ImplicitSphere sphere = ImplicitSphere(radius, position, material);
         implicitSpheres.push_back(sphere);
     }

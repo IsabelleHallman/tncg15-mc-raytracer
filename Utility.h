@@ -130,6 +130,8 @@ struct Material {
             case PERFECT_REFLECTOR:
                 // TODO: In case
                 return glm::vec3(1.0);
+            case LIGHT:
+                return rhoOverPi;
             default:
                 return glm::vec3(0.0);
         }
@@ -284,7 +286,7 @@ struct Tetrahedron : MeshObject {
 struct ImplicitSphere {
 
 public:
-    ImplicitSphere(float radiusIn, Vertex centerPos, Material materialIn)
+    ImplicitSphere(float radiusIn, Vertex centerPos, Material* materialIn)
             : radius(radiusIn), center(centerPos), material(materialIn), radiusSquared(glm::pow(radiusIn, 2)) { }
 
     bool rayIntersection(Ray &ray) {
@@ -305,7 +307,7 @@ public:
 
         Vertex intersectionPoint = Vertex(ray.startPoint->position + d0 * ray.direction.vector);
         ray.intersection = new Intersection(intersectionPoint, Direction(intersectionPoint.position - center.position),
-                                            &material, d0);
+                                            material, d0);
         return true;
     }
 
@@ -334,7 +336,7 @@ private:
     float radius;
     float radiusSquared;
     Vertex center;
-    Material material;
+    Material* material;
 };
 
 struct Light {
