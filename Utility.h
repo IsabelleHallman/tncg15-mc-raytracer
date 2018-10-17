@@ -19,7 +19,7 @@ struct Tetrahedron;
 struct ImplicitSphere;
 struct Light;
 
-const float EPSILON = 1e-6;
+const float EPSILON = 1e-4;
 
 const int LAMBERTIAN = 0;
 const int OREN_NAYAR = 1;
@@ -84,9 +84,9 @@ struct ColorDbl {
     double r, g, b;
 
     ColorDbl& operator+=(const ColorDbl& other) {
-        r += other.r;
-        g += other.g;
-        b += other.b;
+        glm::clamp(r += other.r, 0.0, 1.0);
+        glm::clamp(g += other.g, 0.0, 1.0);
+        glm::clamp(b += other.b, 0.0, 1.0);
         return *this;
     }
 
@@ -108,7 +108,7 @@ struct ColorDbl {
     }
 
     ColorDbl operator*(const glm::vec3& other) const {
-        return ColorDbl(r * other.r, g * other.g, b * other.b);
+        return ColorDbl(glm::clamp(r * other.r, 0.0, 1.0), glm::clamp(g * other.g, 0.0, 1.0), glm::clamp(b * other.b, 0.0, 1.0));
     }
 };
 
