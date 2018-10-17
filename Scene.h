@@ -18,7 +18,7 @@ public:
 
     Scene() : defaultMaterial(Material()) { };
 
-    void findIntersectedTriangle(Ray &ray) {
+    bool findIntersectedTriangle(Ray &ray) {
         for (auto iterator = walls.begin(); iterator != walls.end(); ++iterator) {
             iterator->rayIntersection(ray);
         }
@@ -38,8 +38,9 @@ public:
         // TODO: Sometimes the ray hits inbetween two triangles (where it should not be any space), rounding error?
         if(!ray.intersection) {
             ray.intersection = new Intersection(Vertex(), Direction(), &defaultMaterial, 10000);
+            return false;
         }
-
+        return true;
     }
 
     void addWalls(std::list<Triangle>& trianglesIn) {

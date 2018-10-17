@@ -45,6 +45,10 @@ struct Vertex {
                 && glm::abs(position.z - b.position.z) < EPSILON);
     }
 
+    bool operator!=(const Vertex& b) const {
+        return !(*this == b);
+    }
+
     float w;
     glm::vec3 position;
 };
@@ -101,6 +105,10 @@ struct ColorDbl {
         return glm::abs(other.r - r) < EPSILON
                && glm::abs(other.g - g) < EPSILON
                && glm::abs(other.b - b) < EPSILON;
+    }
+
+    ColorDbl operator*(const glm::vec3& other) const {
+        return ColorDbl(r * other.r, g * other.g, b * other.b);
     }
 };
 
@@ -163,10 +171,18 @@ struct Ray {
 
 struct Triangle {
     Triangle() : v1(Vertex()), v2(Vertex()), v3(Vertex()), normal(Direction()),
-                 material(new Material()) {}
+                 material(new Material()) {
+        edge1 = v2.position - v1.position;
+        edge2 =  v3.position - v1.position;
+        area = 0.5 * glm::length(glm::cross(edge1, edge2));
+        computeNormal();
+    }
 
     Triangle(Vertex &v1In, Vertex &v2In, Vertex &v3In, Material* materialIn)
             : v1(v1In), v2(v2In), v3(v3In), normal(Direction(.0, .0, .0)), material(materialIn) {
+        edge1 = v2.position - v1.position;
+        edge2 =  v3.position - v1.position;
+        area = 0.5 * glm::length(glm::cross(edge1, edge2));
         computeNormal();
     }
 
@@ -215,11 +231,11 @@ struct Triangle {
     Vertex v1, v2, v3;
     Material* material;
     Direction normal;
-    float area = 0.5 * glm::length(glm::cross(edge1, edge2));
+    float area;
 
 private:
-    glm::vec3 edge1 = v2.position - v1.position;
-    glm::vec3 edge2 = v3.position - v1.position;
+    glm::vec3 edge1;
+    glm::vec3 edge2;
 
     void computeNormal() {
         glm::vec3 normalVec = glm::normalize(glm::cross(edge1, edge2));
