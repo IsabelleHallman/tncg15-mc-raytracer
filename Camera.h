@@ -23,18 +23,18 @@ struct Pixel {
 template <typename T> class Array2D {
 public:
     size_t width, height;
-    T * array;
+    std::vector<T> data;
 
     Array2D(size_t widthIn, size_t heightIn) : width(widthIn), height(heightIn) {
-        array = new T[width * height];
+        data.resize(width * height);
     }
 
     T* get(size_t x, size_t y) {
-        return &(array[getPosition(x, y)]);
+        return &(data[getPosition(x, y)]);
     }
 
     void set(T value, size_t x, size_t y) {
-        array[getPosition(x, y)] = value;
+        data[getPosition(x, y)] = value;
     }
 
 private:

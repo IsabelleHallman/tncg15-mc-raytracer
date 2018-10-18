@@ -164,6 +164,11 @@ struct Ray {
 
     Ray() : startPoint(nullptr), direction(Direction()), intersection(nullptr) { }
 
+    ~Ray() {
+        if(intersection)
+            delete intersection;
+    }
+
     Vertex* startPoint;
     Direction direction;
     Intersection* intersection;
@@ -171,7 +176,7 @@ struct Ray {
 
 struct Triangle {
     Triangle() : v1(Vertex()), v2(Vertex()), v3(Vertex()),
-                 material(new Material()), normal(Direction()) {
+                 material(&defaultMaterial), normal(Direction()) {
         edge1 = v2.position - v1.position;
         edge2 =  v3.position - v1.position;
         area = 0.5 * glm::length(glm::cross(edge1, edge2));
@@ -208,7 +213,11 @@ struct Triangle {
         float t = glm::dot(Q, edge2) * f;
 
         if (t > EPSILON) {
+
             if(!ray.intersection || ray.intersection->distanceToRayOrigin > t ){
+                if(ray.intersection)
+                    delete ray.intersection;
+
                 ray.intersection = new Intersection(getPointOnTriangle(u, v), normal, material, t);
                 return true;
             }
@@ -232,6 +241,7 @@ struct Triangle {
     Material* material;
     Direction normal;
     float area;
+    Material defaultMaterial = Material();
 
 private:
     glm::vec3 edge1;
@@ -245,11 +255,11 @@ private:
 
 struct MeshObject {
     MeshObject() : numTriangles(4) {
-        triangles = new Triangle[numTriangles];
+        triangles.resize(numTriangles);
     }
 
     MeshObject(int numTrianglesIn) : numTriangles(numTrianglesIn) {
-        triangles = new Triangle[numTriangles];
+        triangles.resize(numTriangles);
     }
 
     bool rayIntersection(Ray &ray) {
@@ -260,7 +270,7 @@ struct MeshObject {
     }
 
     int numTriangles;
-    Triangle* triangles;
+    std::vector<Triangle> triangles;
 };
 
 struct Tetrahedron : MeshObject {
@@ -305,9 +315,15 @@ public:
         if(abs(d0) < EPSILON)
             return false;
 
-        Vertex intersectionPoint = Vertex(ray.startPoint->position + d0 * ray.direction.vector);
-        ray.intersection = new Intersection(intersectionPoint, Direction(intersectionPoint.position - center.position),
-                                            material, d0);
+        if(!ray.intersection || ray.intersection->distanceToRayOrigin > d0 ){
+            if(ray.intersection)
+                delete ray.intersection;
+
+            Vertex intersectionPoint = Vertex(ray.startPoint->position + d0 * ray.direction.vector);
+            ray.intersection = new Intersection(intersectionPoint, Direction(intersectionPoint.position - center.position),
+                                                material, d0);
+        }
+
         return true;
     }
 

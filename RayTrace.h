@@ -16,6 +16,8 @@ public:
         glm::vec3 colorContrib = calculateLight(&root);
         ColorDbl pixelColor = ColorDbl(colorContrib);
 
+        destroyNodeTree(&root);
+
         return pixelColor;
     }
 
@@ -33,6 +35,20 @@ private:
     };
 
     Scene* scene;
+
+    void destroyNodeTree(Node* root){
+        destroyNode(root->reflected);
+        destroyNode(root->refracted);
+    }
+
+    void destroyNode(Node* node){
+        if (node)
+        {
+            destroyNode(node->reflected);
+            destroyNode(node->refracted);
+            delete node;
+        }
+    }
 
     glm::vec3 calculateLight(Node* currentNode) {
         glm::vec3 reflectedLight = glm::vec3(0.f), refractedLight = glm::vec3(0.f);
