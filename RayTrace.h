@@ -51,11 +51,9 @@ private:
         if(current_node->ray.intersection->material->type == LAMBERTIAN || depth >= MAX_DEPTH)
             return;
 
-        if(current_node->ray.intersection->material->type == PERFECT_REFLECTOR) {
-            current_node->reflected = new Node(current_node, getReflectedRay(current_node->ray), scene);
-            createNewRayNodes(current_node->reflected, depth + 1);
-        }
-
+        current_node->reflected = new Node(current_node, getReflectedRay(current_node->ray), scene);
+        createNewRayNodes(current_node->reflected, depth + 1);
+        
         if(current_node->ray.intersection->material->type == TRANSPARENT){
             current_node->refracted = new Node(current_node, getRefractedRay(current_node->ray), scene);
             createNewRayNodes(current_node->refracted, depth+1);
@@ -77,7 +75,7 @@ private:
     }
 
     glm::vec3 calculateLight(Node* currentNode) {
-        glm::vec3 reflectedLight = glm::vec3(0.f), refractedLight = glm::vec3(0.f);
+        glm::vec3 reflectedLight = glm::vec3(0.f), refractedLight = glm::vec3(0.f), currentLight = glm::vec3(0.f);
 
         if(currentNode->reflected != nullptr)
             reflectedLight = calculateLight(currentNode->reflected);
@@ -90,7 +88,11 @@ private:
         }
 
         // TODO: USE SCHLICKS EQ. TO KNOW HOW MUCH OF EACH SHOULD BE REPRESENTED
-        glm::vec3 currentLight = reflectedLight + refractedLight;
+        if(currentNode->ray.intersection->material->type == TRANSPARENT){
+            currentLight = refractedLight;
+        } else {
+            currentLight = reflectedLight;
+        }
 
         // Calculate the contribution from the direct lighting
         if(currentNode->ray.intersection->material->type == LAMBERTIAN) {
