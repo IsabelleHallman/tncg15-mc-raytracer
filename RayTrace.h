@@ -36,6 +36,31 @@ private:
     };
 
     Scene* scene;
+    const int MAX_DEPTH = 10;
+
+    Node createRayTree(Ray &ray) {
+        Node root = Node(nullptr, ray, scene);
+        Node* next = &root;
+
+        createNewRayNodes(&root, 0);
+
+        return root;
+    }
+
+    void createNewRayNodes(Node* current_node, int depth){
+        if(current_node->ray.intersection->material->type == LAMBERTIAN || depth >= MAX_DEPTH)
+            return;
+
+        if(current_node->ray.intersection->material->type == PERFECT_REFLECTOR) {
+            current_node->reflected = new Node(current_node, getReflectedRay(current_node->ray), scene);
+            createNewRayNodes(current_node->reflected, depth + 1);
+        }
+
+        if(current_node->ray.intersection->material->type == TRANSPARENT){
+            current_node->refracted = new Node(current_node, getRefractedRay(current_node->ray), scene);
+            createNewRayNodes(current_node->refracted, depth+1);
+        }
+    }
 
     void destroyNodeTree(Node* root){
         destroyNode(root->reflected);
@@ -78,35 +103,6 @@ private:
         }
 
         return currentLight;
-    }
-
-    // TODO: Change to recursive so each node can have both reflected and refracted rays
-    Node createRayTree(Ray &ray) {
-        Node root = Node(nullptr, ray, scene);
-        Node* next = &root;
-
-        int maxIterations = 10;
-        int iter = 0;
-
-        while(next != nullptr){
-            if(next->ray.intersection->material->type == LAMBERTIAN)
-                break;
-
-            if(iter == maxIterations){
-                break;
-            }
-
-            if(next->ray.intersection->material->type == PERFECT_REFLECTOR) {
-                next->reflected = new Node(next, getReflectedRay(next->ray), scene);
-                next = next->reflected;
-            }
-            if(next->ray.intersection->material->type == TRANSPARENT){
-                next->refracted = new Node(next, getRefractedRay(next->ray), scene);
-                next = next->refracted;
-            }
-            iter++;
-        }
-        return root;
     }
 
     glm::vec3 calculateDirectLight(Ray* ray) {
