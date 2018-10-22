@@ -67,7 +67,7 @@ private:
         glm::vec3 currentLight = reflectedLight + refractedLight;
 
         // Calculate the contribution from the direct lighting
-        if(currentNode->ray.intersection->material->type == LAMBERTIAN) {
+        if(currentNode->ray.intersection->material->type != PERFECT_REFLECTOR) {
             ColorDbl currentColorDbl = currentNode->ray.intersection->material->color;
             glm::vec3 currentColor = glm::vec3(currentColorDbl.r, currentColorDbl.g, currentColorDbl.b);
 
@@ -85,7 +85,7 @@ private:
 
         int maxIterations = 10;
         for(int i = 0; i < maxIterations; i++) {
-            if(next->ray.intersection->material->type == LAMBERTIAN)
+            if(next->ray.intersection->material->type != PERFECT_REFLECTOR)
                 break;
 
             // TODO: ADD refracted rays as well.
@@ -97,7 +97,7 @@ private:
 
     glm::vec3 calculateDirectLight(Ray* ray) {
         glm::vec3 allLightsContributions = glm::vec3(0.0);
-        int numRays = 3;
+        int numRays = 5;
 
         for (auto iterator = scene->lightBegin(); iterator != scene->lightEnd(); ++iterator) {
             glm::vec3 singleLightContribution = glm::vec3(0.0);
@@ -112,7 +112,7 @@ private:
     }
 
     Ray getReflectedRay(Ray &incomingRay) {
-        // TODO: Introduce Monte Carlo scheme by using random directions (slide 209)
+        // TODO: Introduce Monte Carlo scheme by using random directions (slide 209) if glossy surface
         glm::vec3 reflectedDir = glm::reflect(incomingRay.direction.vector, incomingRay.intersection->normal.vector);
         return Ray(&incomingRay.intersection->position, Direction(reflectedDir));
     }
@@ -137,7 +137,7 @@ private:
 
         float g = glm::abs(cosAlpha) * glm::abs(cosBeta) / (d * d);
 
-        glm::vec3 brdfResult = intersection->material->getBRDF(intersection->position, shadowRay.direction, ray->direction);
+        glm::vec3 brdfResult = intersection->material->getBRDF(*intersection, shadowRay.direction, ray->direction);
 
         return g * brdfResult;
     }

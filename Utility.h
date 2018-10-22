@@ -6,6 +6,7 @@
 #include "glm/gtx/normal.hpp"
 #include "glm/glm.hpp"
 #include "glm/gtc/constants.hpp"
+#include "glm/gtx/vector_angle.hpp"
 
 struct Vertex;
 struct Direction;
@@ -115,20 +116,52 @@ struct ColorDbl {
     }
 };
 
+struct Intersection {
+
+    Intersection(Vertex intersection, Direction normalIn, Material* mat, float dist)
+            : position(intersection), normal(normalIn), material(mat), distanceToRayOrigin(dist) {}
+
+    Vertex position;
+    Direction normal;
+    Material* material;
+    float distanceToRayOrigin;
+};
+
 struct Material {
-    Material() : color(ColorDbl()), alpha(1.0), specular(0.0), type(LAMBERTIAN), rho(glm::vec3(0.5)) {}
+    Material() : color(ColorDbl()), alpha(1.0), specular(0.0), type(LAMBERTIAN), rho(glm::vec3(0.5)) {
+        rhoOverPi = glm::one_over_pi<float>() * rho;
+    }
 
     Material(ColorDbl colorIn, float alphaIn, float specularIn, int typeIn, glm::vec3 rhoIn)
-            : color(colorIn), alpha(alphaIn), specular(specularIn), type(typeIn), rho(rhoIn) {}
+            : color(colorIn), alpha(alphaIn), specular(specularIn), type(typeIn), rho(rhoIn) {
+        rhoOverPi = glm::one_over_pi<float>() * rho;
+        if (type == OREN_NAYAR) {
+            //TODO: remove hard-coding of roughness
+            float roughness = 5.0;
+            float roughnessSquared = roughness * roughness;
+            orenA = 1 - (0.5 * (roughnessSquared / (roughnessSquared + 0.33)));
+            orenB = 0.45 * (roughnessSquared / (roughnessSquared + 0.09));
+        } else {
+            orenA = orenB = 0.0;
+        }
+    }
 
-    glm::vec3 getBRDF(Vertex x, Direction wIn, Direction wOut) {
+    glm::vec3 getBRDF(Intersection& intersection, Direction& wIn, Direction& wOut) {
+        //wIn towards lightsource, wOut towards observer
+        float alpha, beta, thetaR, thetaI, phiDiff;
         switch (type) {
             case LAMBERTIAN:
                 // TODO: Use different values of pho for R, G, B
                 return rhoOverPi;
             case OREN_NAYAR:
-                // TODO: Implement Oren-Nayar reflector
-                return glm::vec3(1.0);
+                thetaR = glm::angle(intersection.normal.vector, wOut.vector); // observer
+                thetaI = glm::angle(intersection.normal.vector, wIn.vector); // illumination
+                //TODO: use local coordinate system (below is incorrect)
+                phiDiff = atan(wOut.vector.y / wOut.vector.x) - atan(wIn.vector.y / wIn.vector.x); //azimuth angle difference between wIn & wOut
+                alpha = glm::max(thetaR, thetaI);
+                beta = glm::min(thetaR, thetaI);
+                return rhoOverPi * (orenA + orenB *
+                        glm::max(0.0f, cos(phiDiff)) * sin(alpha) * tan(beta));
             case PERFECT_REFLECTOR:
                 // TODO: In case
                 return glm::vec3(1.0);
@@ -144,18 +177,8 @@ struct Material {
     float specular;
     int type;
     glm::vec3 rho;
-    glm::vec3 rhoOverPi = glm::one_over_pi<float>() * rho;
-};
-
-struct Intersection {
-
-    Intersection(Vertex intersection, Direction normalIn, Material* mat, float dist)
-            : position(intersection), normal(normalIn), material(mat), distanceToRayOrigin(dist) {}
-
-    Vertex position;
-    Direction normal;
-    Material* material;
-    float distanceToRayOrigin;
+    glm::vec3 rhoOverPi;
+    float orenA, orenB;
 };
 
 struct Ray {

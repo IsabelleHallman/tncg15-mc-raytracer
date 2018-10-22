@@ -77,7 +77,7 @@ Scene generateTestScene() {
     int tetraMaterialIndex = scene.addMaterial(tetraMaterial);
 
     // Moving these lines below sceneTriangles creation causes weird errors on the scene materials. Memory conflict?
-    Material sphereMaterial = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
+    Material sphereMaterial = Material(redColor, 1.0, 0.0, OREN_NAYAR, glm::vec3(1.0));
     int sphereMaterialIndex = scene.addMaterial(sphereMaterial);
 
     Material mirrorMaterial = Material(whiteColor, 1.0, 0.0, PERFECT_REFLECTOR, glm::vec3(1.0));
