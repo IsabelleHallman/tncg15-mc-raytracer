@@ -28,7 +28,6 @@ const int PERFECT_REFLECTOR = 2;
 const int LIGHT = 3;
 
 
-
 struct Vertex {
     Vertex() : position(glm::vec3(.0, .0, .0)), w(1.0){ }
 
@@ -118,21 +117,24 @@ struct ColorDbl {
 
 struct Intersection {
 
-    Intersection(Vertex intersection, Direction normalIn, Material *mat, float dist)
-            : position(intersection), normal(normalIn), material(mat), distanceToRayOrigin(dist) {
-        axisX = Direction(1.0, 0.0, 0.0);
-        axisY = Direction(0.0, 1.0, 0.0);
+    Intersection(Vertex intersection, Direction normalIn, Material *mat, float dist) {
+        Intersection(intersection, normalIn, mat, dist, normalIn);
     }
 
     Intersection(Vertex intersection, Direction normalIn, Material *mat, float dist, Direction &rayDirection)
             : position(intersection), normal(normalIn), material(mat), distanceToRayOrigin(dist) {
         axisX = Direction(rayDirection.vector - glm::dot(rayDirection.vector, normal.vector) * normal.vector);
         axisY = Direction(glm::cross(-1.f * axisX.vector, normal.vector));
+        worldToLocalMatrix = glm::inverse(glm::mat4(axisX.vector.x, axisX.vector.y, axisX.vector.z, 0.0,
+                                       axisY.vector.x, axisY.vector.y, axisY.vector.z, 0.0,
+                                       normal.vector.x, normal.vector.y, normal.vector.z, 0.0,
+                                       0.0, 0.0, 0.0, 1.0));
     }
 
     Vertex position;
     Direction normal, axisX, axisY;
     Material* material;
+    glm::mat4 worldToLocalMatrix;
     float distanceToRayOrigin;
 };
 
@@ -158,19 +160,24 @@ struct Material {
     glm::vec3 getBRDF(Intersection& intersection, Direction& wIn, Direction& wOut) {
         //wIn towards lightsource, wOut towards observer
         float alpha, beta, thetaR, thetaI, phiDiff;
+        glm::vec3 wInLocal, wOutLocal;
+
         switch (type) {
             case LAMBERTIAN:
                 // TODO: Use different values of pho for R, G, B
                 return rhoOverPi;
             case OREN_NAYAR:
-                thetaR = glm::angle(intersection.normal.vector, wOut.vector); // observer
-                thetaI = glm::angle(intersection.normal.vector, wIn.vector); // illumination
-                //TODO: use local coordinate system (below is incorrect)
-                phiDiff = atan(wOut.vector.y / wOut.vector.x) - atan(wIn.vector.y / wIn.vector.x); //azimuth angle difference between wIn & wOut
+                wInLocal = glm::vec3(intersection.worldToLocalMatrix * glm::vec4(wIn.vector.x, wIn.vector.y, wIn.vector.z, 1.0));
+                wOutLocal = glm::vec3(intersection.worldToLocalMatrix * glm::vec4(wOut.vector.x, wOut.vector.y, wOut.vector.z, 1.0));
+
+                thetaR = glm::acos(wOutLocal.z);
+                thetaI = glm::acos(wInLocal.z);
+                phiDiff = glm::atan(wOutLocal.y, wOutLocal.x) - glm::atan(wInLocal.y, wInLocal.x);
                 alpha = glm::max(thetaR, thetaI);
                 beta = glm::min(thetaR, thetaI);
+
                 return rhoOverPi * (orenA + orenB *
-                        glm::max(0.0f, cos(phiDiff)) * sin(alpha) * tan(beta));
+                        glm::max(0.0f, glm::cos(phiDiff)) * glm::sin(alpha) * glm::tan(beta));
             case PERFECT_REFLECTOR:
                 // TODO: In case
                 return glm::vec3(1.0);
