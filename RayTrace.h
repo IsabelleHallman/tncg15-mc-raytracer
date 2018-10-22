@@ -5,6 +5,7 @@
 #ifndef TNCG15_MC_RAYTRACER_RAYTRACE_H
 #define TNCG15_MC_RAYTRACER_RAYTRACE_H
 #include "Scene.h"
+#include "glm/gtx/vector_angle.hpp"
 
 class RayTrace {
 public:
@@ -63,7 +64,7 @@ private:
             return glm::vec3(lightColor.r, lightColor.g, lightColor.b);
         }
 
-        // In our case, we will only have either reflected or refracted light, never both.
+        // TODO: USE SCHLICKS EQ. TO KNOW HOW MUCH OF EACH SHOULD BE REPRESENTED
         glm::vec3 currentLight = reflectedLight + refractedLight;
 
         // Calculate the contribution from the direct lighting
@@ -79,18 +80,31 @@ private:
         return currentLight;
     }
 
+    // TODO: Change to recursive so each node can have both reflected and refracted rays
     Node createRayTree(Ray &ray) {
         Node root = Node(nullptr, ray, scene);
         Node* next = &root;
 
         int maxIterations = 10;
-        for(int i = 0; i < maxIterations; i++) {
+        int iter = 0;
+
+        while(next != nullptr){
             if(next->ray.intersection->material->type == LAMBERTIAN)
                 break;
 
-            // TODO: ADD refracted rays as well.
-            next->reflected = new Node(next, getReflectedRay(next->ray), scene);
-            next = next->reflected;
+            if(iter == maxIterations){
+                break;
+            }
+
+            if(next->ray.intersection->material->type == PERFECT_REFLECTOR) {
+                next->reflected = new Node(next, getReflectedRay(next->ray), scene);
+                next = next->reflected;
+            }
+            if(next->ray.intersection->material->type == TRANSPARENT){
+                next->refracted = new Node(next, getRefractedRay(next->ray), scene);
+                next = next->refracted;
+            }
+            iter++;
         }
         return root;
     }
@@ -111,22 +125,51 @@ private:
         return allLightsContributions;
     }
 
+    // TODO: Introduce Monte Carlo scheme by using random directions (slide 209)
     Ray getReflectedRay(Ray &incomingRay) {
-        // TODO: Introduce Monte Carlo scheme by using random directions (slide 209)
         glm::vec3 reflectedDir = glm::reflect(incomingRay.direction.vector, incomingRay.intersection->normal.vector);
-        return Ray(&incomingRay.intersection->position, Direction(reflectedDir));
+
+        glm::vec3 offset = 0.00001f * incomingRay.intersection->normal.vector;
+        Vertex reflectedRayOrigin = Vertex(incomingRay.intersection->position.position + offset);
+
+        return Ray(reflectedRayOrigin, Direction(reflectedDir));
     }
 
-    Ray getRefractedRay(){
-        // TODO: Implement refracted rays
-        return Ray();
+    Ray getRefractedRay(Ray &incomingRay){
+        float n1 = 1.0; // AIR
+        float n2 = incomingRay.intersection->material->refractionIndex;
+
+        glm::vec3 surfaceNormal = incomingRay.intersection->normal.vector;
+        glm::vec3 offset = 0.00001f * surfaceNormal;
+
+        // Check if we are inside of the object or outside, swap if we are inside
+        float angle = glm::angle(incomingRay.direction.vector, surfaceNormal);
+        if(angle < glm::pi<float>()/2.f){
+            surfaceNormal*= -1.f;
+            offset *= -1.f;
+            std::swap(n1,n2);
+        }
+
+        // TODO: CHANGE THIS! IF THE ANGLE IS TOO LARGE, THERE SHOULD BE NO REFRACTION RAY
+        /*if(n1 > n2){
+            float brewsterAngle = glm::asin(n2 / n1);
+            float alpha = glm::angle(incomingRay.direction.vector, surfaceNormal);
+            if(alpha > brewsterAngle)
+                return Ray();
+        }*/
+
+        float refractionRatio = n1/n2;
+        glm::vec3 refractedRay = refract(incomingRay.direction.vector, surfaceNormal, refractionRatio);
+        Vertex refractedRayOrigin = Vertex(incomingRay.intersection->position.position + offset);
+
+        return Ray(refractedRayOrigin, Direction(refractedRay));
     }
 
     glm::vec3 sendShadowRay(Light* light, Intersection* intersection, Ray* ray) {
         Vertex pointOnLight = light->getRandomPointOnLight();
         glm::vec3 s = pointOnLight.position - intersection->position.position;
         Vertex startPoint = Vertex(intersection->position.position + EPSILON * glm::normalize(s));
-        Ray shadowRay = Ray(&startPoint, Direction(s));
+        Ray shadowRay = Ray(startPoint, Direction(s));
         if (!scene->findIntersectedTriangle(shadowRay) || shadowRay.intersection->position != pointOnLight)
             return glm::vec3(0.0);
 

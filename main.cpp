@@ -61,6 +61,8 @@ Scene generateTestScene() {
 
     Material light = Material(whiteColor, 1.0, 0.0, LIGHT, glm::vec3(1.0));
 
+    Material transparent = Material(TRANSPARENT, 1.5f);
+
     Scene scene = Scene();
 
     int redIndex = scene.addMaterial(red);
@@ -71,6 +73,7 @@ Scene generateTestScene() {
     int cyanIndex = scene.addMaterial(cyan);
     int whiteIndex = scene.addMaterial(white);
     int lightIndex = scene.addMaterial(light);
+    int transparentIndex = scene.addMaterial(transparent);
 
     ColorDbl tetraColor = ColorDbl(.5, 1., 1.);
     Material tetraMaterial = Material(tetraColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
@@ -120,8 +123,8 @@ Scene generateTestScene() {
     scene.addTetrahedron(tetraPosition2, scene.getMaterial(tetraMaterialIndex));
 
     // Implicit spheres
-    Vertex centerOfSphere = Vertex(glm::vec3(6.f, -2.f, -3.f));
-    scene.addImplicitSphere(1.0, centerOfSphere, scene.getMaterial(mirrorMaterialIndex));
+    Vertex centerOfSphere = Vertex(glm::vec3(6.f, -4.f, -3.f));
+    scene.addImplicitSphere(1.0, centerOfSphere, scene.getMaterial(transparentIndex));
 
     Vertex centerOfSphere2 = Vertex(glm::vec3(8.f, 3.f, 4.f));
     scene.addImplicitSphere(1.0, centerOfSphere2, scene.getMaterial(sphereMaterialIndex));
