@@ -146,13 +146,7 @@ struct Material {
     Material(ColorDbl colorIn, float alphaIn, float specularIn, int typeIn, glm::vec3 rhoIn)
             : color(colorIn), alpha(alphaIn), specular(specularIn), type(typeIn), rho(rhoIn) {
         rhoOverPi = glm::one_over_pi<float>() * rho;
-        if (type == OREN_NAYAR) {
-            //TODO: remove hard-coding of roughness
-            float roughness = 5.0;
-            float roughnessSquared = roughness * roughness;
-            orenA = 1 - (0.5 * (roughnessSquared / (roughnessSquared + 0.33)));
-            orenB = 0.45 * (roughnessSquared / (roughnessSquared + 0.09));
-        } else {
+        if (type != OREN_NAYAR) {
             orenA = orenB = 0.0;
         }
     }
@@ -195,6 +189,27 @@ struct Material {
     glm::vec3 rho;
     glm::vec3 rhoOverPi;
     float orenA, orenB;
+};
+
+struct OrenNayarMaterial : Material {
+    OrenNayarMaterial(ColorDbl colorIn, glm::vec3 rhoIn, float roughness)
+            : Material(colorIn, 1.0, 0.0, OREN_NAYAR, rhoIn) {
+        float roughnessSquared = roughness * roughness;
+        orenA = 1 - (0.5 * (roughnessSquared / (roughnessSquared + 0.33)));
+        orenB = 0.45 * (roughnessSquared / (roughnessSquared + 0.09));
+    }
+};
+
+struct LambertianMaterial : Material {
+    LambertianMaterial(ColorDbl colorIn, glm::vec3 rhoIn) : Material(colorIn, 1.0, 0.0, LAMBERTIAN, rhoIn) { }
+};
+
+struct LightMaterial : Material {
+    LightMaterial(ColorDbl colorIn) : Material(colorIn, 1.0, 0.0, LIGHT, glm::vec3(1.0)) { }
+};
+
+struct PerfectReflectorMaterial : Material {
+    PerfectReflectorMaterial() : Material(ColorDbl(), 1.0, 1.0, PERFECT_REFLECTOR, glm::vec3(1.0)) { }
 };
 
 struct Ray {
