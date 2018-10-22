@@ -118,11 +118,20 @@ struct ColorDbl {
 
 struct Intersection {
 
-    Intersection(Vertex intersection, Direction normalIn, Material* mat, float dist)
-            : position(intersection), normal(normalIn), material(mat), distanceToRayOrigin(dist) {}
+    Intersection(Vertex intersection, Direction normalIn, Material *mat, float dist)
+            : position(intersection), normal(normalIn), material(mat), distanceToRayOrigin(dist) {
+        axisX = Direction(1.0, 0.0, 0.0);
+        axisY = Direction(0.0, 1.0, 0.0);
+    }
+
+    Intersection(Vertex intersection, Direction normalIn, Material *mat, float dist, Direction &rayDirection)
+            : position(intersection), normal(normalIn), material(mat), distanceToRayOrigin(dist) {
+        axisX = Direction(rayDirection.vector - glm::dot(rayDirection.vector, normal.vector) * normal.vector);
+        axisY = Direction(glm::cross(-1.f * axisX.vector, normal.vector));
+    }
 
     Vertex position;
-    Direction normal;
+    Direction normal, axisX, axisY;
     Material* material;
     float distanceToRayOrigin;
 };
@@ -241,7 +250,7 @@ struct Triangle {
                 if(ray.intersection)
                     delete ray.intersection;
 
-                ray.intersection = new Intersection(getPointOnTriangle(u, v), normal, material, t);
+                ray.intersection = new Intersection(getPointOnTriangle(u, v), normal, material, t, ray.direction);
                 return true;
             }
         }
@@ -343,8 +352,9 @@ public:
                 delete ray.intersection;
 
             Vertex intersectionPoint = Vertex(ray.startPoint->position + d0 * ray.direction.vector);
-            ray.intersection = new Intersection(intersectionPoint, Direction(intersectionPoint.position - center.position),
-                                                material, d0);
+            ray.intersection = new Intersection(intersectionPoint,
+                                                Direction(intersectionPoint.position - center.position), material, d0,
+                                                ray.direction);
         }
 
         return true;
