@@ -29,9 +29,16 @@ private:
             scene->findIntersectedTriangle(ray);
         }
 
+        void calculateRadianceDistribution(float n1, float n2){
+            float R_0 = pow((n1 - n2)/(n1 + n2), 2);
+            reflectionCoefficient = R_0 +
+                    (1 - R_0) * pow(1 - glm::dot(ray.intersection->normal.vector, -1.f * ray.direction.vector), 5);
+        }
+
         Node* parent;
         Node* reflected;
         Node* refracted;
+        float reflectionCoefficient = 1.0f;
         Ray ray;
     };
 
@@ -53,9 +60,11 @@ private:
 
         current_node->reflected = new Node(current_node, getReflectedRay(current_node->ray), scene);
         createNewRayNodes(current_node->reflected, depth + 1);
-        
+
         if(current_node->ray.intersection->material->type == TRANSPARENT){
-            current_node->refracted = new Node(current_node, getRefractedRay(current_node->ray), scene);
+            float n1 = 0.f, n2 = 0.f;
+            current_node->refracted = new Node(current_node, getRefractedRay(current_node->ray, n1, n2), scene);
+            current_node->calculateRadianceDistribution(n1, n2);
             createNewRayNodes(current_node->refracted, depth+1);
         }
     }
@@ -77,22 +86,21 @@ private:
     glm::vec3 calculateLight(Node* currentNode) {
         glm::vec3 reflectedLight = glm::vec3(0.f), refractedLight = glm::vec3(0.f), currentLight = glm::vec3(0.f);
 
+        if(currentNode->reflectionCoefficient > 1.f)
+            std::cout << currentNode->reflectionCoefficient << std::endl;
+
         if(currentNode->reflected != nullptr)
-            reflectedLight = calculateLight(currentNode->reflected);
+            reflectedLight = currentNode->reflectionCoefficient * calculateLight(currentNode->reflected);
         if(currentNode->refracted != nullptr)
-            refractedLight = calculateLight(currentNode->refracted);
+            refractedLight = (1-currentNode->reflectionCoefficient) * calculateLight(currentNode->refracted);
 
         if (currentNode->ray.intersection->material->type == LIGHT) {
             ColorDbl lightColor = currentNode->ray.intersection->material->color;
             return glm::vec3(lightColor.r, lightColor.g, lightColor.b);
         }
+        
+        currentLight = reflectedLight + refractedLight;
 
-        // TODO: USE SCHLICKS EQ. TO KNOW HOW MUCH OF EACH SHOULD BE REPRESENTED
-        if(currentNode->ray.intersection->material->type == TRANSPARENT){
-            currentLight = refractedLight;
-        } else {
-            currentLight = reflectedLight;
-        }
 
         // Calculate the contribution from the direct lighting
         if(currentNode->ray.intersection->material->type == LAMBERTIAN) {
@@ -133,9 +141,9 @@ private:
         return Ray(reflectedRayOrigin, Direction(reflectedDir));
     }
 
-    Ray getRefractedRay(Ray &incomingRay){
-        float n1 = 1.0; // AIR
-        float n2 = incomingRay.intersection->material->refractionIndex;
+    Ray getRefractedRay(Ray &incomingRay, float &n1, float &n2){
+        n1 = 1.0; // AIR
+        n2 = incomingRay.intersection->material->refractionIndex;
 
         glm::vec3 surfaceNormal = incomingRay.intersection->normal.vector;
         glm::vec3 offset = 0.00001f * surfaceNormal;
