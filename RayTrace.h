@@ -181,9 +181,7 @@ private:
 
         Ray shadowRay = Ray(startPoint, Direction(s));
 
-        // TODO: below might introduce bugs if lights should shade eachother.
-        // This will give dual light contributions even if there is another light in the way
-        if (!scene->findIntersectedTriangle(shadowRay) || shadowRay.intersection->material->type != LIGHT)
+        if (!scene->findIntersectedTriangle(shadowRay) || shadowRay.intersection->position != pointOnLight)
             return glm::vec3(0.0);
 
         float d = glm::length(s);
