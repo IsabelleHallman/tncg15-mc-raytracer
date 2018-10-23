@@ -80,7 +80,7 @@ Scene generateTestScene() {
     int tetraMaterialIndex = scene.addMaterial(tetraMaterial);
 
     // Moving these lines below sceneTriangles creation causes weird errors on the scene materials. Memory conflict?
-    Material sphereMaterial = OrenNayarMaterial(redColor, glm::vec3(1.0), 5.0);
+    Material sphereMaterial = LambertianMaterial(redColor, glm::vec3(1.0));
     int sphereMaterialIndex = scene.addMaterial(sphereMaterial);
 
     Material mirrorMaterial = PerfectReflectorMaterial();
@@ -137,20 +137,20 @@ Scene generateTestScene() {
     Vertex l1 = Vertex(7.0f, 0.0, 4.99, 1.0);
     Vertex l2 = Vertex(5.0, 2.0f, 4.99, 1.0);
     Triangle lightTriangle = Triangle(l0, l2, l1, scene.getMaterial(lightIndex));
-   // scene.addLight(lightTriangle, whiteColor);
+    scene.addLight(lightTriangle, whiteColor);
 
     Vertex l0Top = Vertex(5.0, -2.0f, 4.995, 1.0);
     Vertex l1Top = Vertex(7.0f, 0.0, 4.995, 1.0);
     Vertex l2Top = Vertex(5.0, 2.0f, 4.995, 1.0);
     Triangle lightTriangleTop = Triangle(l0Top, l1Top, l2Top, scene.getMaterial(lightIndex));
-   // scene.addLight(lightTriangleTop, whiteColor);
+    scene.addLight(lightTriangleTop, whiteColor);
 
 
     Vertex l3 = Vertex(1.0, -3.0f, 4.95, 1.0);
     Vertex l4 = Vertex(3.0f, 0.0, 4.95, 1.0);
     Vertex l5 = Vertex(1.0, 1.0f, 4.95, 1.0);
     Triangle lightTriangle2 = Triangle(l3, l5, l4, scene.getMaterial(lightIndex));
-    //scene.addLight(lightTriangle2, whiteColor);
+    scene.addLight(lightTriangle2, whiteColor);
 
     Vertex l6 = Vertex(1.0, -3.0f, -4.95f, 1.0);
     Vertex l7 = Vertex(3.0f, 0.0, -4.95f, 1.0);
@@ -162,7 +162,7 @@ Scene generateTestScene() {
     Vertex l10 = Vertex(7.0f, 0.0, -4.9f, 1.0);
     Vertex l11 = Vertex(5.0, 2.0f, -4.9f, 1.0);
     Triangle lightTriangle4 = Triangle(l9, l11, l10, scene.getMaterial(lightIndex));
-    //scene.addLight(lightTriangle, whiteColor);
+    scene.addLight(lightTriangle4, whiteColor);
 
     return scene;
 }

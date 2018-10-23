@@ -185,10 +185,10 @@ private:
             return glm::vec3(0.0);
 
         float d = glm::length(s);
-        float cosAlpha = - glm::dot(s, light->getNormalOfFirstTriangle()->vector);
+        float cosAlpha = glm::dot(-1.f * s, light->getNormalOfFirstTriangle()->vector);
         float cosBeta = glm::dot(s, intersection->normal.vector);
 
-        float g = cosAlpha * cosBeta / (d * d);
+        float g = glm::clamp(cosAlpha * cosBeta / (d * d), 0.0f, 1.0f);
 
         glm::vec3 brdfResult = intersection->material->getBRDF(*intersection, shadowRay.direction, ray->direction);
 
