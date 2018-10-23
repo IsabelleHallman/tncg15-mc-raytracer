@@ -474,8 +474,6 @@ struct Light {
         float randomV = random - randomU;
         float randomW = 1 - randomU - randomV;
 
-        if (randomW <= 0) std::cout << "RandomW is too small" << std::endl;
-
         return lightObject.triangles[0].getPointOnTriangle(randomU, randomV, randomW);
     }
 
