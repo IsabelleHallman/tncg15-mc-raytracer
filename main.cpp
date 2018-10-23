@@ -87,30 +87,30 @@ Scene generateTestScene() {
     int mirrorMaterialIndex = scene.addMaterial(mirrorMaterial);
 
     std::list<Triangle> sceneTriangles = {
-            Triangle(sceneVertices.at(0), sceneVertices.at(2), sceneVertices.at(1), scene.getMaterial(redIndex)),
+            Triangle(sceneVertices.at(0), sceneVertices.at(1), sceneVertices.at(2), scene.getMaterial(redIndex)),
             Triangle(sceneVertices.at(2), sceneVertices.at(1), sceneVertices.at(3), scene.getMaterial(redIndex)),
-            Triangle(sceneVertices.at(3), sceneVertices.at(2), sceneVertices.at(4), scene.getMaterial(greenIndex)),
-            Triangle(sceneVertices.at(3), sceneVertices.at(4), sceneVertices.at(5), scene.getMaterial(greenIndex)),
-            Triangle(sceneVertices.at(4), sceneVertices.at(6), sceneVertices.at(5), scene.getMaterial(blueIndex)),
-            Triangle(sceneVertices.at(5), sceneVertices.at(6), sceneVertices.at(7), scene.getMaterial(blueIndex)),
-            Triangle(sceneVertices.at(6), sceneVertices.at(8), sceneVertices.at(7), scene.getMaterial(yellowIndex)),
-            Triangle(sceneVertices.at(7), sceneVertices.at(8), sceneVertices.at(9), scene.getMaterial(yellowIndex)),
-            Triangle(sceneVertices.at(8), sceneVertices.at(10), sceneVertices.at(9), scene.getMaterial(magentaIndex)),
-            Triangle(sceneVertices.at(9), sceneVertices.at(10), sceneVertices.at(11), scene.getMaterial(magentaIndex)),
-            Triangle(sceneVertices.at(10), sceneVertices.at(0), sceneVertices.at(11), scene.getMaterial(cyanIndex)),
-            Triangle(sceneVertices.at(0), sceneVertices.at(1), sceneVertices.at(11), scene.getMaterial(cyanIndex)),
-            Triangle(sceneVertices.at(0), sceneVertices.at(10), sceneVertices.at(8), scene.getMaterial(whiteIndex)),
-            Triangle(sceneVertices.at(0), sceneVertices.at(8), sceneVertices.at(12), scene.getMaterial(whiteIndex)),
-            Triangle(sceneVertices.at(0), sceneVertices.at(12), sceneVertices.at(2), scene.getMaterial(whiteIndex)),
-            Triangle(sceneVertices.at(2), sceneVertices.at(12), sceneVertices.at(6), scene.getMaterial(whiteIndex)),
-            Triangle(sceneVertices.at(12), sceneVertices.at(8), sceneVertices.at(6), scene.getMaterial(whiteIndex)),
-            Triangle(sceneVertices.at(2), sceneVertices.at(6), sceneVertices.at(4), scene.getMaterial(whiteIndex)),
-            Triangle(sceneVertices.at(11), sceneVertices.at(1), sceneVertices.at(9), scene.getMaterial(whiteIndex)),
-            Triangle(sceneVertices.at(1), sceneVertices.at(13), sceneVertices.at(9), scene.getMaterial(whiteIndex)),
-            Triangle(sceneVertices.at(1), sceneVertices.at(3), sceneVertices.at(13), scene.getMaterial(whiteIndex)),
-            Triangle(sceneVertices.at(13), sceneVertices.at(3), sceneVertices.at(7), scene.getMaterial(whiteIndex)),
-            Triangle(sceneVertices.at(13), sceneVertices.at(7), sceneVertices.at(9), scene.getMaterial(whiteIndex)),
-            Triangle(sceneVertices.at(3), sceneVertices.at(5), sceneVertices.at(7), scene.getMaterial(whiteIndex))
+            Triangle(sceneVertices.at(3), sceneVertices.at(4), sceneVertices.at(2), scene.getMaterial(greenIndex)),
+            Triangle(sceneVertices.at(3), sceneVertices.at(5), sceneVertices.at(4), scene.getMaterial(greenIndex)),
+            Triangle(sceneVertices.at(4), sceneVertices.at(5), sceneVertices.at(6), scene.getMaterial(blueIndex)),
+            Triangle(sceneVertices.at(5), sceneVertices.at(7), sceneVertices.at(6), scene.getMaterial(blueIndex)),
+            Triangle(sceneVertices.at(6), sceneVertices.at(7), sceneVertices.at(8), scene.getMaterial(yellowIndex)),
+            Triangle(sceneVertices.at(7), sceneVertices.at(9), sceneVertices.at(8), scene.getMaterial(yellowIndex)),
+            Triangle(sceneVertices.at(8), sceneVertices.at(9), sceneVertices.at(10), scene.getMaterial(magentaIndex)),
+            Triangle(sceneVertices.at(9), sceneVertices.at(11), sceneVertices.at(10), scene.getMaterial(magentaIndex)),
+            Triangle(sceneVertices.at(10), sceneVertices.at(11), sceneVertices.at(0), scene.getMaterial(cyanIndex)),
+            Triangle(sceneVertices.at(0), sceneVertices.at(11), sceneVertices.at(1), scene.getMaterial(cyanIndex)),
+            Triangle(sceneVertices.at(0), sceneVertices.at(8), sceneVertices.at(10), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(0), sceneVertices.at(12), sceneVertices.at(8), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(0), sceneVertices.at(2), sceneVertices.at(12), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(2), sceneVertices.at(6), sceneVertices.at(12), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(12), sceneVertices.at(6), sceneVertices.at(8), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(2), sceneVertices.at(4), sceneVertices.at(6), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(11), sceneVertices.at(9), sceneVertices.at(1), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(1), sceneVertices.at(9), sceneVertices.at(13), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(1), sceneVertices.at(13), sceneVertices.at(3), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(13), sceneVertices.at(7), sceneVertices.at(3), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(13), sceneVertices.at(9), sceneVertices.at(7), scene.getMaterial(whiteIndex)),
+            Triangle(sceneVertices.at(3), sceneVertices.at(7), sceneVertices.at(5), scene.getMaterial(whiteIndex))
     };
 
     scene.addWalls(sceneTriangles);
@@ -128,22 +128,29 @@ Scene generateTestScene() {
 
     // Implicit spheres
     Vertex centerOfSphere = Vertex(glm::vec3(6.f, -4.f, -3.f));
-    scene.addImplicitSphere(1.0, centerOfSphere, scene.getMaterial(transparentIndex));
+    scene.addImplicitSphere(1.0, centerOfSphere, scene.getMaterial(sphereMaterialIndex));
 
     Vertex centerOfSphere2 = Vertex(glm::vec3(6.f, 3.f, 2.f));
     scene.addImplicitSphere(1.0, centerOfSphere2, scene.getMaterial(sphereMaterialIndex));
 
-    Vertex l0 = Vertex(5.0, -2.0f, 4.9, 1.0);
-    Vertex l1 = Vertex(7.0f, 0.0, 4.9, 1.0);
-    Vertex l2 = Vertex(5.0, 2.0f, 4.9, 1.0);
+    Vertex l0 = Vertex(5.0, -2.0f, 4.99, 1.0);
+    Vertex l1 = Vertex(7.0f, 0.0, 4.99, 1.0);
+    Vertex l2 = Vertex(5.0, 2.0f, 4.99, 1.0);
     Triangle lightTriangle = Triangle(l0, l2, l1, scene.getMaterial(lightIndex));
-    scene.addLight(lightTriangle, whiteColor);
+   // scene.addLight(lightTriangle, whiteColor);
+
+    Vertex l0Top = Vertex(5.0, -2.0f, 4.995, 1.0);
+    Vertex l1Top = Vertex(7.0f, 0.0, 4.995, 1.0);
+    Vertex l2Top = Vertex(5.0, 2.0f, 4.995, 1.0);
+    Triangle lightTriangleTop = Triangle(l0Top, l1Top, l2Top, scene.getMaterial(lightIndex));
+   // scene.addLight(lightTriangleTop, whiteColor);
+
 
     Vertex l3 = Vertex(1.0, -3.0f, 4.95, 1.0);
     Vertex l4 = Vertex(3.0f, 0.0, 4.95, 1.0);
     Vertex l5 = Vertex(1.0, 1.0f, 4.95, 1.0);
     Triangle lightTriangle2 = Triangle(l3, l5, l4, scene.getMaterial(lightIndex));
-    scene.addLight(lightTriangle2, whiteColor);
+    //scene.addLight(lightTriangle2, whiteColor);
 
     Vertex l6 = Vertex(1.0, -3.0f, -4.95f, 1.0);
     Vertex l7 = Vertex(3.0f, 0.0, -4.95f, 1.0);

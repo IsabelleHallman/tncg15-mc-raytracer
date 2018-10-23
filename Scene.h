@@ -32,7 +32,7 @@ public:
         }
 
         for (auto iterator = lights.begin(); iterator != lights.end(); ++iterator) {
-            (iterator)->lightTriangle.rayIntersection(ray);
+            (iterator)->rayIntersection(ray);
         }
 
         // TODO: Sometimes the ray hits inbetween two triangles (where it should not be any space), rounding error?

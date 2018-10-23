@@ -116,22 +116,6 @@ private:
         return currentLight;
     }
 
-    glm::vec3 calculateDirectLight(Ray* ray) {
-        glm::vec3 allLightsContributions = glm::vec3(0.0);
-        int numRays = 5;
-
-        for (auto iterator = scene->lightBegin(); iterator != scene->lightEnd(); ++iterator) {
-            glm::vec3 singleLightContribution = glm::vec3(0.0);
-            Light* light = &*iterator;
-            for (int i = 0; i < numRays; i++)
-                singleLightContribution += sendShadowRay(light, ray->intersection, ray);
-            singleLightContribution *= (1.0 / numRays) * light->lightTriangle.area;
-            allLightsContributions += singleLightContribution;
-        }
-
-        return allLightsContributions;
-    }
-
     // TODO: Introduce Monte Carlo scheme by using random directions (slide 209)
     Ray getReflectedRay(Ray &incomingRay) {
         // TODO: Introduce Monte Carlo scheme by using random directions (slide 209) if glossy surface
@@ -174,20 +158,39 @@ private:
         return Ray(refractedRayOrigin, Direction(refractedRay));
     }
 
+    glm::vec3 calculateDirectLight(Ray* ray) {
+        glm::vec3 allLightsContributions = glm::vec3(0.0);
+        int numRays = 2;
+
+        for (auto iterator = scene->lightBegin(); iterator != scene->lightEnd(); ++iterator) {
+            glm::vec3 singleLightContribution = glm::vec3(0.0);
+            Light* light = &*iterator;
+            for (int i = 0; i < numRays; i++)
+                singleLightContribution += sendShadowRay(light, ray->intersection, ray);
+            singleLightContribution *= (1.0 / numRays) * light->area();
+            allLightsContributions += singleLightContribution;
+        }
+
+        return allLightsContributions;
+    }
+
     glm::vec3 sendShadowRay(Light* light, Intersection* intersection, Ray* ray) {
         Vertex pointOnLight = light->getRandomPointOnLight();
-        glm::vec3 s = pointOnLight.position - intersection->position.position;
-        Vertex startPoint = Vertex(intersection->position.position + EPSILON * glm::normalize(s));
+        Vertex startPoint = Vertex(intersection->position.position + EPSILON * intersection->normal.vector);
+        glm::vec3 s = pointOnLight.position - startPoint.position;
+
         Ray shadowRay = Ray(startPoint, Direction(s));
-        if (!scene->findIntersectedTriangle(shadowRay) || shadowRay.intersection->position != pointOnLight)
+
+        // TODO: below might introduce bugs if lights should shade eachother.
+        // This will give dual light contributions even if there is another light in the way
+        if (!scene->findIntersectedTriangle(shadowRay) || shadowRay.intersection->material->type != LIGHT)
             return glm::vec3(0.0);
 
         float d = glm::length(s);
-        //s = glm::normalize(s);
-        float cosAlpha = - glm::dot(s, light->lightTriangle.normal.vector);
+        float cosAlpha = - glm::dot(s, light->getNormalOfFirstTriangle()->vector);
         float cosBeta = glm::dot(s, intersection->normal.vector);
 
-        float g = glm::abs(cosAlpha) * glm::abs(cosBeta) / (d * d);
+        float g = cosAlpha * cosBeta / (d * d);
 
         glm::vec3 brdfResult = intersection->material->getBRDF(*intersection, shadowRay.direction, ray->direction);
 

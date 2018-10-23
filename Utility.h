@@ -279,7 +279,7 @@ struct Triangle {
                 if(ray.intersection)
                     delete ray.intersection;
 
-                ray.intersection = new Intersection(getPointOnTriangle(u, v), normal, material, t, ray.direction);
+                ray.intersection = new Intersection(ray.startPoint.position + t * ray.direction.vector, normal, material, t, ray.direction);
                 return true;
             }
         }
@@ -288,6 +288,10 @@ struct Triangle {
 
     Vertex getPointOnTriangle(float u, float v) {
         return Vertex(v1.position + (u * edge1 + v * edge2));
+    }
+
+    Vertex getPointOnTriangle(float u, float v, float w) {
+        return Vertex(u * v1.position + v * v2.position + w * v3.position);
     }
 
     bool operator==(const Triangle& other) const {
@@ -315,8 +319,7 @@ private:
 };
 
 struct MeshObject {
-    MeshObject() : numTriangles(4) {
-        triangles.resize(numTriangles);
+    MeshObject() : MeshObject(4) {
     }
 
     MeshObject(int numTrianglesIn) : numTriangles(numTrianglesIn) {
@@ -328,6 +331,14 @@ struct MeshObject {
             triangles[i].rayIntersection(ray);
         }
         return ray.intersection != nullptr;
+    }
+
+    float area() {
+        float area = 0.0;
+        for (int i = 0; i < numTriangles; i++) {
+            area += triangles[i].area;
+        }
+        return area;
     }
 
     int numTriangles;
@@ -344,10 +355,10 @@ struct Tetrahedron : MeshObject {
         Vertex v3 = Vertex(glm::vec3(-1.0f, -1.0f, 1.0) + position.position);
 
         // TODO: Arbitrarily chosen order of vertices - normal might be wrong.
-        triangles[0] = Triangle(v0, v1, v2, material);
-        triangles[1] = Triangle(v0, v1, v3, material);
-        triangles[2] = Triangle(v0, v2, v3, material);
-        triangles[3] = Triangle(v1, v2, v3, material);
+        triangles[0] = Triangle(v0, v1, v2, material); // Not sure if normal is correct
+        triangles[1] = Triangle(v0, v3, v1, material); // Not sure if normal is correct
+        triangles[2] = Triangle(v0, v2, v3, material); // Normal ok
+        triangles[3] = Triangle(v1, v3, v2, material); // Normal ok
     }
 };
 
@@ -449,17 +460,57 @@ private:
 
 struct Light {
     Light(Triangle& lightTriangleIn, ColorDbl colorIn)
-            : color(colorIn), lightTriangle(lightTriangleIn) { }
+            : color(colorIn) {
+        lightObject = MeshObject(1);
+        lightObject.triangles[0] = lightTriangleIn;
+    }
 
-    Vertex getRandomPointOnLight(){
+    Light(MeshObject object, ColorDbl colorIn)
+            : lightObject(object), color(colorIn) { }
+
+    Vertex getRandomPointOnLight() {
         float random = glm::clamp((float) std::rand()/ RAND_MAX, 0.01f, 0.99f);
-        float randomU = random / ((std::rand() % 8) + 2);
+        float randomU = random / ((std::rand() % 8) + 2.0);
+        float randomV = random - randomU;
+        float randomW = 1 - randomU - randomV;
+
+        if (randomW <= 0) std::cout << "RandomW is too small" << std::endl;
+
+        return lightObject.triangles[0].getPointOnTriangle(randomU, randomV, randomW);
+    }
+
+    Direction* getNormalOfFirstTriangle() {
+        return &lightObject.triangles[0].normal;
+    }
+
+    //TODO: fix this fabulous method name
+    Vertex getRandomPointOnLightWhichSees(Vertex* vertex, Triangle* usedTriangle) {
+        // This is really ineffective (note that this would need to be done for each shadowray, for each point in the tree)
+        float random = glm::clamp((float) std::rand()/ RAND_MAX, 0.01f, 0.99f);
+        float randomU = random / ((std::rand() % 8) + 2.0);
         float randomV = random - randomU;
 
-        return lightTriangle.getPointOnTriangle(randomU, randomV);
+        int triangle = 0;
+        for (int i = 0; i < lightObject.numTriangles; i++) {
+            if (std::rand() / RAND_MAX > 0.5) triangle = i;
+        }
+
+        usedTriangle = &lightObject.triangles[triangle];
+        delete vertex;
+        return lightObject.triangles[triangle].getPointOnTriangle(randomU, randomV);
+    }
+
+    bool rayIntersection(Ray &ray) {
+        return lightObject.rayIntersection(ray);
+    }
+
+    float area() {
+        return lightObject.area();
     }
 
     ColorDbl color;
-    Triangle lightTriangle;
+
+private:
+    MeshObject lightObject;
 };
 
