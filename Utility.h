@@ -26,6 +26,7 @@ const int LAMBERTIAN = 0;
 const int OREN_NAYAR = 1;
 const int PERFECT_REFLECTOR = 2;
 const int LIGHT = 3;
+const int TRANSPARENT = 4;
 
 
 struct Vertex {
@@ -139,17 +140,23 @@ struct Intersection {
 };
 
 struct Material {
-    Material() : color(ColorDbl()), alpha(1.0), specular(0.0), type(LAMBERTIAN), rho(glm::vec3(0.5)) {
+    Material() : color(ColorDbl()), alpha(1.0), specular(0.0), type(LAMBERTIAN), rho(glm::vec3(0.5)),
+                 refractionIndex(0.f) {
         rhoOverPi = glm::one_over_pi<float>() * rho;
     }
 
     Material(ColorDbl colorIn, float alphaIn, float specularIn, int typeIn, glm::vec3 rhoIn)
-            : color(colorIn), alpha(alphaIn), specular(specularIn), type(typeIn), rho(rhoIn) {
+            : color(colorIn), alpha(alphaIn), specular(specularIn), type(typeIn), rho(rhoIn), refractionIndex(0.f) {
         rhoOverPi = glm::one_over_pi<float>() * rho;
         if (type != OREN_NAYAR) {
             orenA = orenB = 0.0;
         }
     }
+
+    Material(int typeIn, float refractionIdx)
+            : color(ColorDbl(1,1,1)), alpha(0.f), specular(0.f), type(typeIn),
+              rho(0.f), refractionIndex(refractionIdx) {}
+
 
     glm::vec3 getBRDF(Intersection& intersection, Direction& wIn, Direction& wOut) {
         //wIn towards lightsource, wOut towards observer
@@ -169,7 +176,6 @@ struct Material {
                 phiDiff = glm::atan(wOutLocal.y, wOutLocal.x) - glm::atan(wInLocal.y, wInLocal.x);
                 alpha = glm::max(thetaR, thetaI);
                 beta = glm::min(thetaR, thetaI);
-
                 return rhoOverPi * (orenA + orenB *
                         glm::max(0.0f, glm::cos(phiDiff)) * glm::sin(alpha) * glm::tan(beta));
             case PERFECT_REFLECTOR:
@@ -189,6 +195,7 @@ struct Material {
     glm::vec3 rho;
     glm::vec3 rhoOverPi;
     float orenA, orenB;
+    float refractionIndex;
 };
 
 struct OrenNayarMaterial : Material {
@@ -213,17 +220,17 @@ struct PerfectReflectorMaterial : Material {
 };
 
 struct Ray {
-    Ray(Vertex *startIn, Direction directionIn)
+    Ray(Vertex startIn, Direction directionIn)
             : startPoint(startIn), direction(directionIn), intersection(nullptr) { }
 
-    Ray() : startPoint(nullptr), direction(Direction()), intersection(nullptr) { }
+    Ray() : startPoint(Vertex()), direction(Direction()), intersection(nullptr) { }
 
     ~Ray() {
         if(intersection)
             delete intersection;
     }
 
-    Vertex* startPoint;
+    Vertex startPoint;
     Direction direction;
     Intersection* intersection;
 };
@@ -248,7 +255,7 @@ struct Triangle {
     bool rayIntersection(Ray &ray) {
         // u v describes points on Moller Trumbore, t where on the ray we are
 
-        glm::vec3 T = ray.startPoint->position - v1.position;
+        glm::vec3 T = ray.startPoint.position - v1.position;
         glm::vec3 direction = ray.direction.vector;
         glm::vec3 P = glm::cross(direction, edge2);
         glm::vec3 Q = glm::cross(T, edge1);
@@ -352,7 +359,7 @@ public:
 
     bool rayIntersection(Ray &ray) {
         float a = 1; // Dot product of rays direction with itself
-        glm::vec3 dirRayOriginToCenter = ray.startPoint->position - center.position; //L
+        glm::vec3 dirRayOriginToCenter = ray.startPoint.position - center.position; //L
         float b = glm::dot((2.f * ray.direction.vector), dirRayOriginToCenter);
         float c = glm::dot(dirRayOriginToCenter, dirRayOriginToCenter) - radiusSquared;
 
@@ -373,7 +380,7 @@ public:
             if(ray.intersection)
                 delete ray.intersection;
 
-            Vertex intersectionPoint = Vertex(ray.startPoint->position + d0 * ray.direction.vector);
+            Vertex intersectionPoint = Vertex(ray.startPoint.position + d0 * ray.direction.vector);
             ray.intersection = new Intersection(intersectionPoint,
                                                 Direction(intersectionPoint.position - center.position), material, d0,
                                                 ray.direction);
