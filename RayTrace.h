@@ -29,7 +29,7 @@ private:
             scene->findIntersectedTriangle(ray);
         }
 
-        void calculateRadianceDistribution(float n1, float n2){
+        void calculateRadianceDistribution(float n1, float n2) {
             float R_0 = pow((n1 - n2)/(n1 + n2), 2);
             reflectionCoefficient = R_0 +
                     (1 - R_0) * pow(1 - glm::dot(ray.intersection->normal.vector, -1.f * ray.direction.vector), 5);
@@ -62,12 +62,15 @@ private:
             return;
 
         // We terminate if we hit a diffuse object or reach maximum depth as well
-        if(current_node->ray.intersection->material->type == LAMBERTIAN || depth >= MAX_DEPTH)
+        if(current_node->ray.intersection->material->type == LAMBERTIAN
+           || current_node->ray.intersection->material->type == OREN_NAYAR
+           || depth >= MAX_DEPTH)
             return;
 
         // Create a new reflected ray
         current_node->reflected = new Node(current_node, getReflectedRay(current_node->ray), scene);
         createNewRayNodes(current_node->reflected, depth + 1);
+
 
         // Create a new refracted ray if the material is transparent
         if(current_node->ray.intersection->material->type == TRANSPARENT){
@@ -78,14 +81,13 @@ private:
         }
     }
 
-    void destroyNodeTree(Node* root){
+    void destroyNodeTree(Node* root) {
         destroyNode(root->reflected);
         destroyNode(root->refracted);
     }
 
-    void destroyNode(Node* node){
-        if (node)
-        {
+    void destroyNode(Node* node) {
+        if (node) {
             destroyNode(node->reflected);
             destroyNode(node->refracted);
             delete node;
@@ -112,7 +114,7 @@ private:
 
 
         // Calculate the contribution from the direct lighting
-        if(currentNode->ray.intersection->material->type == LAMBERTIAN) {
+        if(currentNode->ray.intersection->material->type != PERFECT_REFLECTOR) {
             ColorDbl currentColorDbl = currentNode->ray.intersection->material->color;
             glm::vec3 currentColor = glm::vec3(currentColorDbl.r, currentColorDbl.g, currentColorDbl.b);
 
@@ -126,7 +128,7 @@ private:
 
     glm::vec3 calculateDirectLight(Ray* ray) {
         glm::vec3 allLightsContributions = glm::vec3(0.0);
-        int numRays = 3;
+        int numRays = 5;
 
         for (auto iterator = scene->lightBegin(); iterator != scene->lightEnd(); ++iterator) {
             glm::vec3 singleLightContribution = glm::vec3(0.0);
@@ -142,6 +144,8 @@ private:
 
     // TODO: Introduce Monte Carlo scheme by using random directions (slide 209)
     Ray getReflectedRay(Ray &incomingRay) {
+        // TODO: Introduce Monte Carlo scheme by using random directions (slide 209) if glossy surface
+
         glm::vec3 reflectedDir = glm::reflect(incomingRay.direction.vector, incomingRay.intersection->normal.vector);
 
         glm::vec3 offset = 0.00001f * incomingRay.intersection->normal.vector;
@@ -150,7 +154,7 @@ private:
         return Ray(reflectedRayOrigin, Direction(reflectedDir));
     }
 
-    Ray getRefractedRay(Ray &incomingRay, float &n1, float &n2){
+    Ray getRefractedRay(Ray &incomingRay, float &n1, float &n2) {
         n1 = 1.0; // AIR
         n2 = incomingRay.intersection->material->refractionIndex;
 
@@ -195,7 +199,7 @@ private:
 
         float g = glm::abs(cosAlpha) * glm::abs(cosBeta) / (d * d);
 
-        glm::vec3 brdfResult = intersection->material->getBRDF(intersection->position, shadowRay.direction, ray->direction);
+        glm::vec3 brdfResult = intersection->material->getBRDF(*intersection, shadowRay.direction, ray->direction);
 
         return g * brdfResult;
     }
