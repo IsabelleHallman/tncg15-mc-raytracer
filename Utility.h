@@ -351,6 +351,36 @@ struct Tetrahedron : MeshObject {
     }
 };
 
+struct Box : MeshObject {
+    Box() : Box(Vertex(glm::vec3(8.0, 3.0, -4.0)), new Material(), 1.0, 1.0, 1.0) { }
+
+    Box(Vertex position, Material* material, float width, float depth, float height) : MeshObject(12) {
+        Vertex vertices[8] = {
+                Vertex(position.position),
+                Vertex(glm::vec3(0.0, depth, 0.0) + position.position),
+                Vertex(glm::vec3(width, 0.0, 0.0) + position.position),
+                Vertex(glm::vec3(width, depth, 0.0) + position.position),
+                Vertex(glm::vec3(0.0, 0.0, height) + position.position),
+                Vertex(glm::vec3(0.0, depth, height) + position.position),
+                Vertex(glm::vec3(width, 0.0, height) + position.position),
+                Vertex(glm::vec3(width, depth, height) + position.position)
+        };
+
+        triangles[0] = Triangle(vertices[0], vertices[5], vertices[1], material);
+        triangles[1] = Triangle(vertices[0], vertices[4], vertices[5], material);
+        triangles[2] = Triangle(vertices[1], vertices[5], vertices[7], material);
+        triangles[3] = Triangle(vertices[1], vertices[7], vertices[3], material);
+        triangles[4] = Triangle(vertices[3], vertices[7], vertices[6], material);
+        triangles[5] = Triangle(vertices[2], vertices[3], vertices[6], material);
+        triangles[6] = Triangle(vertices[0], vertices[2], vertices[6], material);
+        triangles[7] = Triangle(vertices[0], vertices[6], vertices[4], material);
+        triangles[8] = Triangle(vertices[4], vertices[7], vertices[5], material);
+        triangles[9] = Triangle(vertices[4], vertices[6], vertices[7], material);
+        triangles[10] = Triangle(vertices[0], vertices[1], vertices[3], material);
+        triangles[11] = Triangle(vertices[0], vertices[3], vertices[2], material);
+    }
+};
+
 struct ImplicitSphere {
 
 public:

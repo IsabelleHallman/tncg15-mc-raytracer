@@ -122,6 +122,10 @@ Scene generateTestScene() {
     Vertex tetraPosition2 = Vertex(glm::vec3(8.0, 0.0, 0.0));
     scene.addTetrahedron(tetraPosition2, scene.getMaterial(tetraMaterialIndex));
 
+    //Box objects
+    Vertex boxPosition = Vertex(glm::vec3(6.0, -2.0, -5.0));
+    scene.addBox(boxPosition, scene.getMaterial(tetraMaterialIndex), 1.0, 1.0, 1.0);
+
     // Implicit spheres
     Vertex centerOfSphere = Vertex(glm::vec3(6.f, -4.f, -3.f));
     scene.addImplicitSphere(1.0, centerOfSphere, scene.getMaterial(transparentIndex));

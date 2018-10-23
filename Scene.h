@@ -52,6 +52,11 @@ public:
         objects.push_back(tetrahedron);
     }
 
+    void addBox(Vertex position, Material* material, float width, float depth, float height) {
+        Box box = Box(position, material, width, depth, height);
+        objects.push_back(box);
+    }
+
     void addImplicitSphere(float radius, Vertex position, Material* material) {
         ImplicitSphere sphere = ImplicitSphere(radius, position, material);
         implicitSpheres.push_back(sphere);
