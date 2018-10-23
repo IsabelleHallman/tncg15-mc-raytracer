@@ -481,23 +481,6 @@ struct Light {
         return &lightObject.triangles[0].normal;
     }
 
-    //TODO: fix this fabulous method name
-    Vertex getRandomPointOnLightWhichSees(Vertex* vertex, Triangle* usedTriangle) {
-        // This is really ineffective (note that this would need to be done for each shadowray, for each point in the tree)
-        float random = glm::clamp((float) std::rand()/ RAND_MAX, 0.01f, 0.99f);
-        float randomU = random / ((std::rand() % 8) + 2.0);
-        float randomV = random - randomU;
-
-        int triangle = 0;
-        for (int i = 0; i < lightObject.numTriangles; i++) {
-            if (std::rand() / RAND_MAX > 0.5) triangle = i;
-        }
-
-        usedTriangle = &lightObject.triangles[triangle];
-        delete vertex;
-        return lightObject.triangles[triangle].getPointOnTriangle(randomU, randomV);
-    }
-
     bool rayIntersection(Ray &ray) {
         return lightObject.rayIntersection(ray);
     }
