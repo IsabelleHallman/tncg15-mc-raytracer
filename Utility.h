@@ -6,6 +6,7 @@
 #include "glm/gtx/normal.hpp"
 #include "glm/glm.hpp"
 #include "glm/gtc/constants.hpp"
+#include "glm/gtx/vector_angle.hpp"
 
 struct Vertex;
 struct Direction;
@@ -26,7 +27,6 @@ const int OREN_NAYAR = 1;
 const int PERFECT_REFLECTOR = 2;
 const int LIGHT = 3;
 const int TRANSPARENT = 4;
-
 
 
 struct Vertex {
@@ -116,26 +116,68 @@ struct ColorDbl {
     }
 };
 
+struct Intersection {
+
+    Intersection(Vertex intersection, Direction normalIn, Material *mat, float dist) {
+        Intersection(intersection, normalIn, mat, dist, normalIn);
+    }
+
+    Intersection(Vertex intersection, Direction normalIn, Material *mat, float dist, Direction &rayDirection)
+            : position(intersection), normal(normalIn), material(mat), distanceToRayOrigin(dist) {
+        axisX = Direction(rayDirection.vector - glm::dot(rayDirection.vector, normal.vector) * normal.vector);
+        axisY = Direction(glm::cross(-1.f * axisX.vector, normal.vector));
+        worldToLocalMatrix = glm::inverse(glm::mat4(axisX.vector.x, axisX.vector.y, axisX.vector.z, 0.0,
+                                       axisY.vector.x, axisY.vector.y, axisY.vector.z, 0.0,
+                                       normal.vector.x, normal.vector.y, normal.vector.z, 0.0,
+                                       0.0, 0.0, 0.0, 1.0));
+    }
+
+    Vertex position;
+    Direction normal, axisX, axisY;
+    Material* material;
+    glm::mat4 worldToLocalMatrix;
+    float distanceToRayOrigin;
+};
+
 struct Material {
     Material() : color(ColorDbl()), alpha(1.0), specular(0.0), type(LAMBERTIAN), rho(glm::vec3(0.5)),
-                 refractionIndex(0.f){}
+                 refractionIndex(0.f) {
+        rhoOverPi = glm::one_over_pi<float>() * rho;
+    }
 
     Material(ColorDbl colorIn, float alphaIn, float specularIn, int typeIn, glm::vec3 rhoIn)
-            : color(colorIn), alpha(alphaIn), specular(specularIn), type(typeIn), rho(rhoIn),
-              refractionIndex(0.f){}
+            : color(colorIn), alpha(alphaIn), specular(specularIn), type(typeIn), rho(rhoIn), refractionIndex(0.f) {
+        rhoOverPi = glm::one_over_pi<float>() * rho;
+        if (type != OREN_NAYAR) {
+            orenA = orenB = 0.0;
+        }
+    }
 
     Material(int typeIn, float refractionIdx)
             : color(ColorDbl(1,1,1)), alpha(0.f), specular(0.f), type(typeIn),
               rho(0.f), refractionIndex(refractionIdx) {}
 
-    glm::vec3 getBRDF(Vertex x, Direction wIn, Direction wOut) {
+
+    glm::vec3 getBRDF(Intersection& intersection, Direction& wIn, Direction& wOut) {
+        //wIn towards lightsource, wOut towards observer
+        float alpha, beta, thetaR, thetaI, phiDiff;
+        glm::vec3 wInLocal, wOutLocal;
+
         switch (type) {
             case LAMBERTIAN:
                 // TODO: Use different values of pho for R, G, B
                 return rhoOverPi;
             case OREN_NAYAR:
-                // TODO: Implement Oren-Nayar reflector
-                return glm::vec3(1.0);
+                wInLocal = glm::vec3(intersection.worldToLocalMatrix * glm::vec4(wIn.vector.x, wIn.vector.y, wIn.vector.z, 1.0));
+                wOutLocal = glm::vec3(intersection.worldToLocalMatrix * glm::vec4(wOut.vector.x, wOut.vector.y, wOut.vector.z, 1.0));
+
+                thetaR = glm::acos(wOutLocal.z);
+                thetaI = glm::acos(wInLocal.z);
+                phiDiff = glm::atan(wOutLocal.y, wOutLocal.x) - glm::atan(wInLocal.y, wInLocal.x);
+                alpha = glm::max(thetaR, thetaI);
+                beta = glm::min(thetaR, thetaI);
+                return rhoOverPi * (orenA + orenB *
+                        glm::max(0.0f, glm::cos(phiDiff)) * glm::sin(alpha) * glm::tan(beta));
             case PERFECT_REFLECTOR:
                 // TODO: In case
                 return glm::vec3(1.0);
@@ -151,19 +193,30 @@ struct Material {
     float specular;
     int type;
     glm::vec3 rho;
-    glm::vec3 rhoOverPi = glm::one_over_pi<float>() * rho;
+    glm::vec3 rhoOverPi;
+    float orenA, orenB;
     float refractionIndex;
 };
 
-struct Intersection {
+struct OrenNayarMaterial : Material {
+    OrenNayarMaterial(ColorDbl colorIn, glm::vec3 rhoIn, float roughness)
+            : Material(colorIn, 1.0, 0.0, OREN_NAYAR, rhoIn) {
+        float roughnessSquared = roughness * roughness;
+        orenA = 1 - (0.5 * (roughnessSquared / (roughnessSquared + 0.33)));
+        orenB = 0.45 * (roughnessSquared / (roughnessSquared + 0.09));
+    }
+};
 
-    Intersection(Vertex intersection, Direction normalIn, Material* mat, float dist)
-            : position(intersection), normal(normalIn), material(mat), distanceToRayOrigin(dist) {}
+struct LambertianMaterial : Material {
+    LambertianMaterial(ColorDbl colorIn, glm::vec3 rhoIn) : Material(colorIn, 1.0, 0.0, LAMBERTIAN, rhoIn) { }
+};
 
-    Vertex position;
-    Direction normal;
-    Material* material;
-    float distanceToRayOrigin;
+struct LightMaterial : Material {
+    LightMaterial(ColorDbl colorIn) : Material(colorIn, 1.0, 0.0, LIGHT, glm::vec3(1.0)) { }
+};
+
+struct PerfectReflectorMaterial : Material {
+    PerfectReflectorMaterial() : Material(ColorDbl(), 1.0, 1.0, PERFECT_REFLECTOR, glm::vec3(1.0)) { }
 };
 
 struct Ray {
@@ -226,7 +279,7 @@ struct Triangle {
                 if(ray.intersection)
                     delete ray.intersection;
 
-                ray.intersection = new Intersection(getPointOnTriangle(u, v), normal, material, t);
+                ray.intersection = new Intersection(getPointOnTriangle(u, v), normal, material, t, ray.direction);
                 return true;
             }
         }
@@ -328,8 +381,9 @@ public:
                 delete ray.intersection;
 
             Vertex intersectionPoint = Vertex(ray.startPoint.position + d0 * ray.direction.vector);
-            ray.intersection = new Intersection(intersectionPoint, Direction(intersectionPoint.position - center.position),
-                                                material, d0);
+            ray.intersection = new Intersection(intersectionPoint,
+                                                Direction(intersectionPoint.position - center.position), material, d0,
+                                                ray.direction);
         }
 
         return true;

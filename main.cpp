@@ -39,27 +39,27 @@ Scene generateTestScene() {
             };
 
     ColorDbl redColor = ColorDbl(1.0, 0.0, 0.0);
-    Material red = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
+    Material red = LambertianMaterial(redColor, glm::vec3(1.0));
 
     ColorDbl greenColor = ColorDbl(0.0, 1.0, 0.0);
-    Material green = Material(greenColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
+    Material green = LambertianMaterial(greenColor, glm::vec3(1.0));
 
     ColorDbl blueColor = ColorDbl(0.0, 0.0, 1.0);
-    Material blue = Material(blueColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
+    Material blue = LambertianMaterial(blueColor, glm::vec3(1.0));
 
     ColorDbl yellowColor = ColorDbl(1.0, 1.0, 0.0);
-    Material yellow = Material(yellowColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
+    Material yellow = LambertianMaterial(yellowColor, glm::vec3(1.0));
 
     ColorDbl magentaColor = ColorDbl(1.0, 0.0, 1.0);
-    Material magenta = Material(magentaColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
+    Material magenta = LambertianMaterial(magentaColor, glm::vec3(1.0));
 
     ColorDbl cyanColor = ColorDbl(0.0, 1.0, 1.0);
-    Material cyan = Material(cyanColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
+    Material cyan = LambertianMaterial(cyanColor, glm::vec3(1.0));
 
     ColorDbl whiteColor = ColorDbl(1.0, .9, 1.0);
-    Material white = Material(whiteColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
+    Material white = LambertianMaterial(whiteColor, glm::vec3(1.0));
 
-    Material light = Material(whiteColor, 1.0, 0.0, LIGHT, glm::vec3(1.0));
+    Material light = LightMaterial(whiteColor);
 
     Material transparent = Material(TRANSPARENT, 1.5f);
 
@@ -76,14 +76,14 @@ Scene generateTestScene() {
     int transparentIndex = scene.addMaterial(transparent);
 
     ColorDbl tetraColor = ColorDbl(.5, 1., 1.);
-    Material tetraMaterial = Material(tetraColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
+    Material tetraMaterial = LambertianMaterial(tetraColor, glm::vec3(1.0));
     int tetraMaterialIndex = scene.addMaterial(tetraMaterial);
 
     // Moving these lines below sceneTriangles creation causes weird errors on the scene materials. Memory conflict?
-    Material sphereMaterial = Material(redColor, 1.0, 0.0, LAMBERTIAN, glm::vec3(1.0));
+    Material sphereMaterial = OrenNayarMaterial(redColor, glm::vec3(1.0), 5.0);
     int sphereMaterialIndex = scene.addMaterial(sphereMaterial);
 
-    Material mirrorMaterial = Material(whiteColor, 1.0, 0.0, PERFECT_REFLECTOR, glm::vec3(1.0));
+    Material mirrorMaterial = PerfectReflectorMaterial();
     int mirrorMaterialIndex = scene.addMaterial(mirrorMaterial);
 
     std::list<Triangle> sceneTriangles = {
@@ -126,7 +126,7 @@ Scene generateTestScene() {
     Vertex centerOfSphere = Vertex(glm::vec3(6.f, -4.f, -3.f));
     scene.addImplicitSphere(1.0, centerOfSphere, scene.getMaterial(transparentIndex));
 
-    Vertex centerOfSphere2 = Vertex(glm::vec3(8.f, 3.f, 4.f));
+    Vertex centerOfSphere2 = Vertex(glm::vec3(6.f, 3.f, 2.f));
     scene.addImplicitSphere(1.0, centerOfSphere2, scene.getMaterial(sphereMaterialIndex));
 
     Vertex l0 = Vertex(5.0, -2.0f, 4.9, 1.0);
@@ -139,7 +139,7 @@ Scene generateTestScene() {
     Vertex l4 = Vertex(3.0f, 0.0, 4.95, 1.0);
     Vertex l5 = Vertex(1.0, 1.0f, 4.95, 1.0);
     Triangle lightTriangle2 = Triangle(l3, l5, l4, scene.getMaterial(lightIndex));
-    //scene.addLight(lightTriangle2, whiteColor);
+    scene.addLight(lightTriangle2, whiteColor);
 
     Vertex l6 = Vertex(1.0, -3.0f, -4.95f, 1.0);
     Vertex l7 = Vertex(3.0f, 0.0, -4.95f, 1.0);
