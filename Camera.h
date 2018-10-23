@@ -8,16 +8,16 @@
 #include <cstdio>
 #include <iostream>
 #include "RayTrace.h"
+#include <random>
 
 struct Pixel {
-    Pixel() : color(ColorDbl()), pixelMiddlePosition(Vertex()), ray(Ray()) { }
+    Pixel() : color(ColorDbl()), pixelMiddlePosition(Vertex()) { }
 
-    Pixel(ColorDbl colorIn, Vertex pixelMiddlePositionIn, Ray rayIn)
-            : color(colorIn), pixelMiddlePosition(pixelMiddlePositionIn), ray(rayIn) { }
+    Pixel(ColorDbl colorIn, Vertex pixelMiddlePositionIn)
+            : color(colorIn), pixelMiddlePosition(pixelMiddlePositionIn) { }
 
     ColorDbl color;
     Vertex pixelMiddlePosition;
-    Ray ray; //TODO: implement possible to have more rays per pixel
 };
 
 template <typename T> class Array2D {
@@ -56,18 +56,41 @@ public:
 
     // Launches a ray through each pixel one at a time
     void render() {
+
+        // Random generation
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<float> dis(-0.5, 0.5);
+
+        ColorDbl finalColor = ColorDbl(0,0,0);
+        float param_y = 0, param_z = 0;
+        Pixel thisPixel = Pixel();
+        Ray thisRay = Ray();
         RayTrace rayTrace = RayTrace(scene);
+        Vertex v = Vertex(), thisPixelMiddlePosition = Vertex();
+        Vertex* activeEye = frontEyeActive ? &frontEye : &backEye;
+
+        const int nr_samples = 1;
+
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                Vertex thisPixelMiddlePosition = Vertex(topLeft.position + glm::vec3(0.0,
-                                                                                     pixelSize / 2 + x * pixelSize,
-                                                                                     - (pixelSize / 2 + y * pixelSize)));
-                Vertex* activeEye = frontEyeActive ? &frontEye : &backEye;
-                Ray thisRay = Ray(thisPixelMiddlePosition, Direction(thisPixelMiddlePosition.position - activeEye->position));
-                //scene->findIntersectedTriangle(thisRay);
-                //ColorDbl thisColor = thisRay.intersection->material->color;
-                ColorDbl thisColor = rayTrace.trace(thisRay);
-                Pixel thisPixel = Pixel(thisColor, thisPixelMiddlePosition, thisRay);
+                thisPixelMiddlePosition = Vertex(topLeft.position +
+                                                 glm::vec3(0.0, pixelSize / 2 + x * pixelSize, -(pixelSize / 2 + y * pixelSize)));
+
+                finalColor = ColorDbl(0,0,0);
+                for(int i = 0; i < nr_samples; i++){
+                    param_y = dis(gen);
+                    param_z = dis(gen);
+
+                    v = thisPixelMiddlePosition;
+                    v.position.y += param_y*pixelSize;
+                    v.position.z += param_z*pixelSize;
+
+                    thisRay = Ray(v, Direction(v.position - activeEye->position));
+                    finalColor += rayTrace.trace(thisRay);
+                }
+                finalColor /= nr_samples;
+                thisPixel = Pixel(finalColor, thisPixelMiddlePosition);
                 sensor.set(thisPixel, x, y);
             }
         }
