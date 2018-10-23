@@ -55,12 +55,21 @@ private:
     }
 
     void createNewRayNodes(Node* current_node, int depth){
+        // Russian Roulette
+        float random = std::rand()/RAND_MAX;
+        float terminationProbability = (depth != 0) ? 0.2f : 0.0f;
+        if(random < terminationProbability)
+            return;
+
+        // We terminate if we hit a diffuse object or reach maximum depth as well
         if(current_node->ray.intersection->material->type == LAMBERTIAN || depth >= MAX_DEPTH)
             return;
 
+        // Create a new reflected ray
         current_node->reflected = new Node(current_node, getReflectedRay(current_node->ray), scene);
         createNewRayNodes(current_node->reflected, depth + 1);
 
+        // Create a new refracted ray if the material is transparent
         if(current_node->ray.intersection->material->type == TRANSPARENT){
             float n1 = 0.f, n2 = 0.f;
             current_node->refracted = new Node(current_node, getRefractedRay(current_node->ray, n1, n2), scene);
