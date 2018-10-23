@@ -153,9 +153,10 @@ struct Material {
         }
     }
 
+    //TODO:  change this to inherited material instead
     Material(int typeIn, float refractionIdx)
             : color(ColorDbl(1,1,1)), alpha(0.f), specular(0.f), type(typeIn),
-              rho(0.f), refractionIndex(refractionIdx) {}
+              rho(0.f), refractionIndex(refractionIdx) { }
 
 
     glm::vec3 getBRDF(Intersection& intersection, Direction& wIn, Direction& wOut) {
