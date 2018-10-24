@@ -74,7 +74,7 @@ private:
         // Russian Roulette
         if(material_type == LAMBERTIAN || material_type == OREN_NAYAR){
             float random = std::rand()/RAND_MAX;
-            float terminationProbability = (depth != 0) ? 0.2f : 0.0f;
+            float terminationProbability = (depth != 0) ? 1.f : 0.0f;
             if(random < terminationProbability)
                  return;
         }
@@ -144,22 +144,6 @@ private:
         return (indirectLight + directLight);
     }
 
-    glm::vec3 calculateDirectLight(Ray* ray) {
-        glm::vec3 allLightsContributions = glm::vec3(0.0);
-        int numRays = 2;
-
-        for (auto iterator = scene->lightBegin(); iterator != scene->lightEnd(); ++iterator) {
-            glm::vec3 singleLightContribution = glm::vec3(0.0);
-            Light* light = &*iterator;
-            for (int i = 0; i < numRays; i++)
-                singleLightContribution += sendShadowRay(light, ray->intersection, ray);
-            singleLightContribution *= (1.0 / numRays) * light->lightTriangle.area;
-            allLightsContributions += singleLightContribution;
-        }
-
-        return allLightsContributions;
-    }
-
     Ray getRandomReflectedRay(Ray &incomingRay) {
         glm::vec3 offset = 0.00001f * incomingRay.intersection->normal.vector;
         Vertex reflectedRayOrigin = Vertex(incomingRay.intersection->position.position + offset);
@@ -185,7 +169,6 @@ private:
                 random_direction,
                 azimuth,
                 intersection.normal.vector));
-
         return Ray(reflectedRayOrigin, Direction(random_direction));
     }
 
@@ -206,18 +189,19 @@ private:
 
         // Check if we are inside of the object or outside, swap if we are inside
         float angle = glm::angle(surfaceNormal, incomingRay.direction.vector);
+
         if(glm::abs(angle) < (float)M_PI/2.f){
             surfaceNormal*= -1.f;
             std::swap(n1,n2);
         }
 
-        if(n1 > n2){
+        if (n1 > n2) {
             float brewsterangle = glm::asin(n2/n1);
             angle = glm::angle(surfaceNormal, incomingRay.direction.vector);
-            if(angle > brewsterangle)
+            if (angle > brewsterangle)
                 return false;
         }
-
+        
         float refractionRatio = n1/n2;
         glm::vec3 refractedRay = glm::refract(incomingRay.direction.vector, surfaceNormal, refractionRatio);
 
@@ -228,20 +212,37 @@ private:
         return true;
     }
 
+    glm::vec3 calculateDirectLight(Ray* ray) {
+        glm::vec3 allLightsContributions = glm::vec3(0.0);
+        int numRays = 2;
+
+        for (auto iterator = scene->lightBegin(); iterator != scene->lightEnd(); ++iterator) {
+            glm::vec3 singleLightContribution = glm::vec3(0.0);
+            Light* light = &*iterator;
+            for (int i = 0; i < numRays; i++)
+                singleLightContribution += sendShadowRay(light, ray->intersection, ray);
+            singleLightContribution *= (1.0 / numRays) * light->area();
+            allLightsContributions += singleLightContribution;
+        }
+
+        return allLightsContributions;
+    }
+
     glm::vec3 sendShadowRay(Light* light, Intersection* intersection, Ray* ray) {
         Vertex pointOnLight = light->getRandomPointOnLight();
-        glm::vec3 s = pointOnLight.position - intersection->position.position;
-        Vertex startPoint = Vertex(intersection->position.position + EPSILON * glm::normalize(s));
+        Vertex startPoint = Vertex(intersection->position.position + EPSILON * intersection->normal.vector);
+        glm::vec3 s = pointOnLight.position - startPoint.position;
+
         Ray shadowRay = Ray(startPoint, Direction(s));
+
         if (!scene->findIntersectedTriangle(shadowRay) || shadowRay.intersection->position != pointOnLight)
             return glm::vec3(0.0);
 
         float d = glm::length(s);
-        //s = glm::normalize(s);
-        float cosAlpha = - glm::dot(s, light->lightTriangle.normal.vector);
+        float cosAlpha = glm::dot(-1.f * s, light->getNormalOfFirstTriangle()->vector);
         float cosBeta = glm::dot(s, intersection->normal.vector);
 
-        float g = glm::abs(cosAlpha) * glm::abs(cosBeta) / (d * d);
+        float g = glm::clamp(cosAlpha * cosBeta / (d * d), 0.0f, 1.0f);
 
         glm::vec3 brdfResult = intersection->material->getBRDF(*intersection, shadowRay.direction, ray->direction);
 
