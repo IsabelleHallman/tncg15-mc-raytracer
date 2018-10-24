@@ -122,9 +122,13 @@ Scene generateTestScene() {
     Vertex tetraPosition2 = Vertex(glm::vec3(8.0, 0.0, 0.0));
     //scene.addTetrahedron(tetraPosition2, scene.getMaterial(mirrorMaterialIndex));
 
+    //Box objects
+    Vertex boxPosition = Vertex(glm::vec3(6.0, -2.0, -5.0));
+    scene.addBox(boxPosition, scene.getMaterial(tetraMaterialIndex), 1.0, 1.0, 1.0);
+
     // Implicit spheres
     Vertex centerOfSphere = Vertex(glm::vec3(6.f, -4.f, -3.f));
-   //scene.addImplicitSphere(1.0, centerOfSphere, scene.getMaterial(transparentIndex));
+    scene.addImplicitSphere(1.0, centerOfSphere, scene.getMaterial(transparentIndex));
 
     Vertex centerOfSphere2 = Vertex(glm::vec3(6.f, 3.f, 2.f));
     //scene.addImplicitSphere(1.0, centerOfSphere2, scene.getMaterial(sphereMaterialIndex));
@@ -132,11 +136,18 @@ Scene generateTestScene() {
     Vertex centerOfSphere3 = Vertex(glm::vec3(7.f, 1.f, -2.f));
     //scene.addImplicitSphere(1.0, centerOfSphere3, scene.getMaterial(mirrorMaterialIndex));
 
-    Vertex l0 = Vertex(5.0, -2.0f, 4.9, 1.0);
-    Vertex l1 = Vertex(7.0f, 0.0, 4.9, 1.0);
-    Vertex l2 = Vertex(5.0, 2.0f, 4.9, 1.0);
+    Vertex l0 = Vertex(5.0, -2.0f, 4.99, 1.0);
+    Vertex l1 = Vertex(7.0f, 0.0, 4.99, 1.0);
+    Vertex l2 = Vertex(5.0, 2.0f, 4.99, 1.0);
     Triangle lightTriangle = Triangle(l0, l2, l1, scene.getMaterial(lightIndex));
     scene.addLight(lightTriangle, whiteColor);
+
+    Vertex l0Top = Vertex(5.0, -2.0f, 4.995, 1.0);
+    Vertex l1Top = Vertex(7.0f, 0.0, 4.995, 1.0);
+    Vertex l2Top = Vertex(5.0, 2.0f, 4.995, 1.0);
+    Triangle lightTriangleTop = Triangle(l0Top, l1Top, l2Top, scene.getMaterial(lightIndex));
+    scene.addLight(lightTriangleTop, whiteColor);
+
 
     Vertex l3 = Vertex(1.0, -3.0f, 4.95, 1.0);
     Vertex l4 = Vertex(3.0f, 0.0, 4.95, 1.0);
@@ -154,7 +165,7 @@ Scene generateTestScene() {
     Vertex l10 = Vertex(7.0f, 0.0, -4.9f, 1.0);
     Vertex l11 = Vertex(5.0, 2.0f, -4.9f, 1.0);
     Triangle lightTriangle4 = Triangle(l9, l11, l10, scene.getMaterial(lightIndex));
-    //scene.addLight(lightTriangle, whiteColor);
+    scene.addLight(lightTriangle4, whiteColor);
 
     return scene;
 }

@@ -77,7 +77,7 @@ public:
                 thisPixelMiddlePosition = Vertex(topLeft.position +
                                                  glm::vec3(0.0, pixelSize / 2 + x * pixelSize, -(pixelSize / 2 + y * pixelSize)));
 
-                finalColor = ColorDbl(0,0,0);
+                finalColor = ColorDbl(0, 0, 0);
                 for(int i = 0; i < nr_samples; i++){
                     param_y = dis(gen);
                     param_z = dis(gen);
