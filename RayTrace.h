@@ -189,8 +189,9 @@ private:
 
         // Check if we are inside of the object or outside, swap if we are inside
         float angle = glm::angle(surfaceNormal, incomingRay.direction.vector);
-        if (angle > (float) M_PI/2.f) {
-            surfaceNormal *= -1.f;
+
+        if(glm::abs(angle) < (float)M_PI/2.f){
+            surfaceNormal*= -1.f;
             std::swap(n1,n2);
         }
 
@@ -200,9 +201,9 @@ private:
             if (angle > brewsterangle)
                 return false;
         }
-
-        float refractionRatio = n1 /n2;
-        glm::vec3 refractedRay = refract(incomingRay.direction.vector, surfaceNormal, refractionRatio);
+        
+        float refractionRatio = n1/n2;
+        glm::vec3 refractedRay = glm::refract(incomingRay.direction.vector, surfaceNormal, refractionRatio);
 
         glm::vec3 offset = 0.00001f * surfaceNormal;
         Vertex refractedRayOrigin = Vertex(incomingRay.intersection->position.position + offset);
