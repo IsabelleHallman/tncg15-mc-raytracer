@@ -32,7 +32,7 @@ public:
         }
 
         for (auto iterator = lights.begin(); iterator != lights.end(); ++iterator) {
-            (iterator)->lightTriangle.rayIntersection(ray);
+            (iterator)->rayIntersection(ray);
         }
 
         // TODO: Sometimes the ray hits inbetween two triangles (where it should not be any space), rounding error?
@@ -50,6 +50,11 @@ public:
     void addTetrahedron(Vertex position, Material* material) {
         Tetrahedron tetrahedron = Tetrahedron(position, material);
         objects.push_back(tetrahedron);
+    }
+
+    void addBox(Vertex position, Material* material, float width, float depth, float height) {
+        Box box = Box(position, material, width, depth, height);
+        objects.push_back(box);
     }
 
     void addImplicitSphere(float radius, Vertex position, Material* material) {

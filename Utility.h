@@ -281,7 +281,7 @@ struct Triangle {
                 if(ray.intersection)
                     delete ray.intersection;
 
-                ray.intersection = new Intersection(getPointOnTriangle(u, v), normal, material, t, ray.direction);
+                ray.intersection = new Intersection(ray.startPoint.position + t * ray.direction.vector, normal, material, t, ray.direction);
                 return true;
             }
         }
@@ -290,6 +290,10 @@ struct Triangle {
 
     Vertex getPointOnTriangle(float u, float v) {
         return Vertex(v1.position + (u * edge1 + v * edge2));
+    }
+
+    Vertex getPointOnTriangle(float u, float v, float w) {
+        return Vertex(u * v1.position + v * v2.position + w * v3.position);
     }
 
     bool operator==(const Triangle& other) const {
@@ -317,8 +321,7 @@ private:
 };
 
 struct MeshObject {
-    MeshObject() : numTriangles(4) {
-        triangles.resize(numTriangles);
+    MeshObject() : MeshObject(4) {
     }
 
     MeshObject(int numTrianglesIn) : numTriangles(numTrianglesIn) {
@@ -330,6 +333,14 @@ struct MeshObject {
             triangles[i].rayIntersection(ray);
         }
         return ray.intersection != nullptr;
+    }
+
+    float area() {
+        float area = 0.0;
+        for (int i = 0; i < numTriangles; i++) {
+            area += triangles[i].area;
+        }
+        return area;
     }
 
     int numTriangles;
@@ -346,11 +357,40 @@ struct Tetrahedron : MeshObject {
         Vertex v2 = Vertex(glm::vec3(-1.0f, 1.0, -1.0f) + position.position);
         Vertex v3 = Vertex(glm::vec3(-1.0f, -1.0f, 1.0) + position.position);
 
-        // TODO: Arbitrarily chosen order of vertices - normal might be wrong.
-        triangles[0] = Triangle(v0, v1, v2, material);
-        triangles[1] = Triangle(v0, v3, v1, material);
-        triangles[2] = Triangle(v0, v2, v3, material);
-        triangles[3] = Triangle(v1, v3, v2, material);
+        triangles[0] = Triangle(v0, v1, v2, material); // Not sure if normal is correct
+        triangles[1] = Triangle(v0, v3, v1, material); // Not sure if normal is correct
+        triangles[2] = Triangle(v0, v2, v3, material); // Normal ok
+        triangles[3] = Triangle(v1, v3, v2, material); // Normal ok
+    }
+};
+
+struct Box : MeshObject {
+    Box() : Box(Vertex(glm::vec3(8.0, 3.0, -4.0)), new Material(), 1.0, 1.0, 1.0) { }
+
+    Box(Vertex position, Material* material, float width, float depth, float height) : MeshObject(12) {
+        Vertex vertices[8] = {
+                Vertex(position.position),
+                Vertex(glm::vec3(0.0, depth, 0.0) + position.position),
+                Vertex(glm::vec3(width, 0.0, 0.0) + position.position),
+                Vertex(glm::vec3(width, depth, 0.0) + position.position),
+                Vertex(glm::vec3(0.0, 0.0, height) + position.position),
+                Vertex(glm::vec3(0.0, depth, height) + position.position),
+                Vertex(glm::vec3(width, 0.0, height) + position.position),
+                Vertex(glm::vec3(width, depth, height) + position.position)
+        };
+
+        triangles[0] = Triangle(vertices[0], vertices[5], vertices[1], material);
+        triangles[1] = Triangle(vertices[0], vertices[4], vertices[5], material);
+        triangles[2] = Triangle(vertices[1], vertices[5], vertices[7], material);
+        triangles[3] = Triangle(vertices[1], vertices[7], vertices[3], material);
+        triangles[4] = Triangle(vertices[3], vertices[7], vertices[6], material);
+        triangles[5] = Triangle(vertices[2], vertices[3], vertices[6], material);
+        triangles[6] = Triangle(vertices[0], vertices[2], vertices[6], material);
+        triangles[7] = Triangle(vertices[0], vertices[6], vertices[4], material);
+        triangles[8] = Triangle(vertices[4], vertices[7], vertices[5], material);
+        triangles[9] = Triangle(vertices[4], vertices[6], vertices[7], material);
+        triangles[10] = Triangle(vertices[0], vertices[1], vertices[3], material);
+        triangles[11] = Triangle(vertices[0], vertices[3], vertices[2], material);
     }
 };
 
@@ -422,18 +462,39 @@ private:
 
 struct Light {
     Light(Triangle& lightTriangleIn, ColorDbl colorIn, float flux)
-            : color(colorIn), lightTriangle(lightTriangleIn), radiosity(flux/lightTriangle.area) { }
+            : color(colorIn), radiosity(flux/lightTriangleIn.area) {
+        lightObject = MeshObject(1);
+        lightObject.triangles[0] = lightTriangleIn;
+    }
 
-    Vertex getRandomPointOnLight(){
+    Light(MeshObject object, ColorDbl colorIn)
+            : lightObject(object), color(colorIn) { }
+
+    Vertex getRandomPointOnLight() {
         float random = glm::clamp((float) std::rand()/ RAND_MAX, 0.01f, 0.99f);
-        float randomU = random / ((std::rand() % 8) + 2);
+        float randomU = random / ((std::rand() % 8) + 2.0);
         float randomV = random - randomU;
+        float randomW = 1 - randomU - randomV;
 
-        return lightTriangle.getPointOnTriangle(randomU, randomV);
+        return lightObject.triangles[0].getPointOnTriangle(randomU, randomV, randomW);
+    }
+
+    Direction* getNormalOfFirstTriangle() {
+        return &lightObject.triangles[0].normal;
+    }
+
+    bool rayIntersection(Ray &ray) {
+        return lightObject.rayIntersection(ray);
+    }
+
+    float area() {
+        return lightObject.area();
     }
 
     ColorDbl color;
-    Triangle lightTriangle;
     float radiosity;
+
+private:
+    MeshObject lightObject;
 };
 
