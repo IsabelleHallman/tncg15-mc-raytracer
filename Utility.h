@@ -277,8 +277,8 @@ struct Triangle {
 
         if (t > EPSILON) {
 
-            if(!ray.intersection || ray.intersection->distanceToRayOrigin > t ){
-                if(ray.intersection)
+            if (!ray.intersection || ray.intersection->distanceToRayOrigin > t ) {
+                if (ray.intersection)
                     delete ray.intersection;
 
                 ray.intersection = new Intersection(ray.startPoint.position + t * ray.direction.vector, normal, material, t, ray.direction);
@@ -471,7 +471,7 @@ struct Light {
             : lightObject(object), color(colorIn) { }
 
     Vertex getRandomPointOnLight() {
-        float random = glm::clamp((float) std::rand()/ RAND_MAX, 0.01f, 0.99f);
+        float random = glm::clamp((float) std::rand()/ (float) RAND_MAX, 0.01f, 0.99f);
         float randomU = random / ((std::rand() % 8) + 2.0);
         float randomV = random - randomU;
         float randomW = 1 - randomU - randomV;

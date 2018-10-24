@@ -36,7 +36,7 @@ private:
     struct Node {
         Node(Node* parentIn, Ray rayIn, Scene* scene)
                 : parent(parentIn), reflected(nullptr), refracted(nullptr), ray(rayIn) {
-            scene->findIntersectedTriangle(ray);
+            if (!scene->findIntersectedTriangle(ray)) std::cout << "No intersection" << std::endl;
         }
 
         void calculateRadianceDistribution(float n1, float n2) {
@@ -68,12 +68,11 @@ private:
     }
 
     void createNewRayNodes(Node* current_node, int depth){
-
         int material_type = current_node->ray.intersection->material->type;
 
         // Russian Roulette
         if(material_type == LAMBERTIAN || material_type == OREN_NAYAR){
-            float random = std::rand()/RAND_MAX;
+            float random = std::rand()/ (float) RAND_MAX;
             float terminationProbability = (depth != 0) ? 1.f : 0.0f;
             if(random < terminationProbability)
                  return;
@@ -117,28 +116,31 @@ private:
     }
 
     glm::vec3 calculateLight(Node* currentNode) {
-        glm::vec3 reflectedLight = glm::vec3(0.f),
-                  refractedLight = glm::vec3(0.f);
-        float refCoeff = currentNode->reflectionCoefficient;
-
-        if(currentNode->reflected != nullptr)
-            reflectedLight = refCoeff * calculateLight(currentNode->reflected);
-        if(currentNode->refracted != nullptr)
-            refractedLight = (1 - refCoeff) * calculateLight(currentNode->refracted);
-
         int matType = currentNode->ray.intersection->material->type;
         if (matType == LIGHT)
             return glm::vec3(1.f);
 
-        glm::vec3 brdf = currentNode->ray.intersection->material->
-                getBRDF(*currentNode->ray.intersection, currentNode->parent->ray.direction, currentNode->ray.direction);
+        glm::vec3 reflectedLight = glm::vec3(0.f),
+                refractedLight = glm::vec3(0.f),
+                brdf = glm::vec3(0.f);
+        float refCoeff = currentNode->reflectionCoefficient;
+
+        if (currentNode->reflected) {
+            reflectedLight = refCoeff * calculateLight(currentNode->reflected);
+            brdf = currentNode->ray.intersection->material->
+                    getBRDF(*currentNode->ray.intersection, currentNode->ray.direction,
+                            currentNode->reflected->ray.direction);
+        }
+        if (currentNode->refracted)
+            refractedLight = (1 - refCoeff) * calculateLight(currentNode->refracted);
 
         glm::vec3 indirectLight = glm::vec3(0.f),
-                  directLight = glm::vec3(0.f);
+                directLight = glm::vec3(0.f);
+
         indirectLight = (reflectedLight + refractedLight) * brdf;
 
         // Calculate the contribution from the direct lighting
-        if(matType != PERFECT_REFLECTOR && matType != TRANSPARENT)
+        if (matType != PERFECT_REFLECTOR && matType != TRANSPARENT)
             directLight = calculateDirectLight(&currentNode->ray);
 
         return (indirectLight + directLight);
@@ -214,7 +216,7 @@ private:
 
     glm::vec3 calculateDirectLight(Ray* ray) {
         glm::vec3 allLightsContributions = glm::vec3(0.0);
-        int numRays = 2;
+        int numRays = 5;
 
         for (auto iterator = scene->lightBegin(); iterator != scene->lightEnd(); ++iterator) {
             glm::vec3 singleLightContribution = glm::vec3(0.0);
