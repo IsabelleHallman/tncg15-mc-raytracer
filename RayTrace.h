@@ -160,7 +160,7 @@ private:
 
     glm::vec3 calculateDirectLight(Ray* ray) {
         glm::vec3 allLightsContributions = glm::vec3(0.0);
-        int numRays = 2;
+        int numRays = 10;
 
         for (auto iterator = scene->lightBegin(); iterator != scene->lightEnd(); ++iterator) {
             glm::vec3 singleLightContribution = glm::vec3(0.0);
