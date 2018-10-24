@@ -116,7 +116,7 @@ Scene generateTestScene() {
     scene.addWalls(sceneTriangles);
 
     // Tetrahedron Objects
-    Vertex tetraPosition = Vertex(glm::vec3(8.0, -2.0, 0.0));
+    Vertex tetraPosition = Vertex(glm::vec3(8.0, 0.0, 0.0));
     scene.addTetrahedron(tetraPosition, scene.getMaterial(tetraMaterialIndex));
 
     Vertex tetraPosition2 = Vertex(glm::vec3(8.0, 0.0, 0.0));
@@ -124,13 +124,13 @@ Scene generateTestScene() {
 
     // Implicit spheres
     Vertex centerOfSphere = Vertex(glm::vec3(6.f, -4.f, -3.f));
-   //scene.addImplicitSphere(1.0, centerOfSphere, scene.getMaterial(transparentIndex));
+    scene.addImplicitSphere(1.0, centerOfSphere, scene.getMaterial(transparentIndex));
 
     Vertex centerOfSphere2 = Vertex(glm::vec3(6.f, 3.f, 2.f));
     //scene.addImplicitSphere(1.0, centerOfSphere2, scene.getMaterial(sphereMaterialIndex));
 
     Vertex centerOfSphere3 = Vertex(glm::vec3(7.f, 1.f, -2.f));
-    //scene.addImplicitSphere(1.0, centerOfSphere3, scene.getMaterial(mirrorMaterialIndex));
+    scene.addImplicitSphere(1.0, centerOfSphere3, scene.getMaterial(mirrorMaterialIndex));
 
     Vertex l0 = Vertex(5.0, -2.0f, 4.9, 1.0);
     Vertex l1 = Vertex(7.0f, 0.0, 4.9, 1.0);

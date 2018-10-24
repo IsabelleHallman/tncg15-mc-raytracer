@@ -146,7 +146,7 @@ private:
 
     glm::vec3 calculateDirectLight(Ray* ray) {
         glm::vec3 allLightsContributions = glm::vec3(0.0);
-        int numRays = 1;
+        int numRays = 2;
 
         for (auto iterator = scene->lightBegin(); iterator != scene->lightEnd(); ++iterator) {
             glm::vec3 singleLightContribution = glm::vec3(0.0);
@@ -206,7 +206,7 @@ private:
 
         // Check if we are inside of the object or outside, swap if we are inside
         float angle = glm::angle(surfaceNormal, incomingRay.direction.vector);
-        if(angle > (float)M_PI/2.f){
+        if(glm::abs(angle) < (float)M_PI/2.f){
             surfaceNormal*= -1.f;
             std::swap(n1,n2);
         }
@@ -219,7 +219,7 @@ private:
         }
 
         float refractionRatio = n1/n2;
-        glm::vec3 refractedRay = refract(incomingRay.direction.vector, surfaceNormal, refractionRatio);
+        glm::vec3 refractedRay = glm::refract(incomingRay.direction.vector, surfaceNormal, refractionRatio);
 
         glm::vec3 offset = 0.00001f * surfaceNormal;
         Vertex refractedRayOrigin = Vertex(incomingRay.intersection->position.position + offset);
