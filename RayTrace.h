@@ -207,15 +207,15 @@ private:
 
         // Check if we are inside of the object or outside, swap if we are inside
         float angle = glm::angle(surfaceNormal, incomingRay.direction.vector);
-        if(angle > (float)M_PI/2.f){
-            surfaceNormal*= -1.f;
+        if (angle > (float) M_PI/2.f) {
+            surfaceNormal *= -1.f;
             std::swap(n1,n2);
         }
 
-        if(n1 > n2){
+        if (n1 > n2) {
             float brewsterangle = glm::asin(n2/n1);
             angle = glm::angle(surfaceNormal, incomingRay.direction.vector);
-            if(angle > brewsterangle)
+            if (angle > brewsterangle)
                 return false;
         }
 
