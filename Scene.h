@@ -14,9 +14,9 @@
 class Scene {
 public:
     Scene(std::list<Triangle>& trianglesIn)
-            : walls(trianglesIn), defaultMaterial(Material()) { }
+            : walls(trianglesIn), defaultMaterial(LambertianMaterial(glm::vec3(0.f), glm::vec3(0.f))) { }
 
-    Scene() : defaultMaterial(Material()) { };
+    Scene() : defaultMaterial(LambertianMaterial(glm::vec3(1.f), glm::vec3(1.f))) { };
 
     bool findIntersectedTriangle(Ray &ray) {
         for (auto iterator = walls.begin(); iterator != walls.end(); ++iterator) {
@@ -68,7 +68,7 @@ public:
     }
 
     void addLight(Triangle& areaLight, ColorDbl color) {
-        lights.push_back(Light(areaLight, color));
+        lights.push_back(Light(areaLight, color, 1000));
     }
 
     Material* getMaterial(int index) {
@@ -91,7 +91,7 @@ private:
     std::list<Light> lights;
 
     std::vector<Material> materials;
-    Material defaultMaterial;
+    LambertianMaterial defaultMaterial;
 };
 
 

@@ -140,7 +140,7 @@ struct Intersection {
 };
 
 struct Material {
-    Material() : color(ColorDbl()), alpha(1.0), specular(0.0), type(LAMBERTIAN), rho(glm::vec3(0.5)),
+    Material() : color(ColorDbl()), alpha(1.0), specular(0.0), type(LAMBERTIAN), rho(glm::vec3(0.f)),
                  refractionIndex(0.f) {
         rhoOverPi = glm::one_over_pi<float>() * rho;
     }
@@ -153,9 +153,10 @@ struct Material {
         }
     }
 
+    //TODO:  change this to inherited material instead
     Material(int typeIn, float refractionIdx)
             : color(ColorDbl(1,1,1)), alpha(0.f), specular(0.f), type(typeIn),
-              rho(0.f), refractionIndex(refractionIdx) {}
+              rho(0.f), refractionIndex(refractionIdx) { }
 
 
     glm::vec3 getBRDF(Intersection& intersection, Direction& wIn, Direction& wOut) {
@@ -165,7 +166,6 @@ struct Material {
 
         switch (type) {
             case LAMBERTIAN:
-                // TODO: Use different values of pho for R, G, B
                 return rhoOverPi;
             case OREN_NAYAR:
                 wInLocal = glm::vec3(intersection.worldToLocalMatrix * glm::vec4(wIn.vector.x, wIn.vector.y, wIn.vector.z, 1.0));
@@ -179,12 +179,13 @@ struct Material {
                 return rhoOverPi * (orenA + orenB *
                         glm::max(0.0f, glm::cos(phiDiff)) * glm::sin(alpha) * glm::tan(beta));
             case PERFECT_REFLECTOR:
-                // TODO: In case
-                return glm::vec3(1.0);
+                return glm::vec3(1.f);
+            case TRANSPARENT:
+                return glm::vec3(1.f);
             case LIGHT:
                 return rhoOverPi;
             default:
-                return glm::vec3(0.0);
+                return glm::vec3(1.f);
         }
     }
 
@@ -233,6 +234,7 @@ struct Ray {
     Vertex startPoint;
     Direction direction;
     Intersection* intersection;
+    bool inside = false;
 };
 
 struct Triangle {
@@ -306,7 +308,7 @@ struct Triangle {
     Material* material;
     Direction normal;
     float area;
-    Material defaultMaterial = Material();
+    LambertianMaterial defaultMaterial = LambertianMaterial(glm::vec3(0.f), glm::vec3(0.f));
 
 private:
     glm::vec3 edge1;
@@ -343,10 +345,11 @@ struct MeshObject {
 
     int numTriangles;
     std::vector<Triangle> triangles;
+    LambertianMaterial defaultMaterial = LambertianMaterial(glm::vec3(0.f), glm::vec3(0.f));
 };
 
 struct Tetrahedron : MeshObject {
-    Tetrahedron() : Tetrahedron(Vertex(glm::vec3(8.0, 3.0, -4.0)), new Material()) { }
+    Tetrahedron() : Tetrahedron(Vertex(glm::vec3(8.0, 3.0, -4.0)), &defaultMaterial) { }
 
     Tetrahedron(Vertex position, Material* material) : MeshObject(4) {
         Vertex v0 = Vertex(glm::vec3(1.0, 1.0, 1.0) + position.position);
@@ -354,7 +357,6 @@ struct Tetrahedron : MeshObject {
         Vertex v2 = Vertex(glm::vec3(-1.0f, 1.0, -1.0f) + position.position);
         Vertex v3 = Vertex(glm::vec3(-1.0f, -1.0f, 1.0) + position.position);
 
-        // TODO: Arbitrarily chosen order of vertices - normal might be wrong.
         triangles[0] = Triangle(v0, v1, v2, material); // Not sure if normal is correct
         triangles[1] = Triangle(v0, v3, v1, material); // Not sure if normal is correct
         triangles[2] = Triangle(v0, v2, v3, material); // Normal ok
@@ -459,8 +461,8 @@ private:
 };
 
 struct Light {
-    Light(Triangle& lightTriangleIn, ColorDbl colorIn)
-            : color(colorIn) {
+    Light(Triangle& lightTriangleIn, ColorDbl colorIn, float flux)
+            : color(colorIn), radiosity(flux/lightTriangleIn.area) {
         lightObject = MeshObject(1);
         lightObject.triangles[0] = lightTriangleIn;
     }
@@ -490,6 +492,7 @@ struct Light {
     }
 
     ColorDbl color;
+    float radiosity;
 
 private:
     MeshObject lightObject;

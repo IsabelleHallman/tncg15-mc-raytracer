@@ -6,10 +6,20 @@
 #define TNCG15_MC_RAYTRACER_RAYTRACE_H
 #include "Scene.h"
 #include "glm/gtx/vector_angle.hpp"
+#include <random>
 
 class RayTrace {
 public:
-    RayTrace(Scene* sceneIn) : scene(sceneIn){ }
+    RayTrace(Scene* sceneIn) : scene(sceneIn){
+        std::random_device rd;
+        gen = new std::mt19937(rd());
+        dis = new std::uniform_real_distribution<float>(0, 1);
+    }
+
+    ~RayTrace(){
+        delete gen;
+        delete dis;
+    }
 
     ColorDbl trace(Ray &ray){
         Node root = createRayTree(ray);
@@ -45,6 +55,9 @@ private:
     Scene* scene;
     const int MAX_DEPTH = 10;
 
+    std::mt19937* gen;
+    std::uniform_real_distribution<float>* dis;
+
     Node createRayTree(Ray &ray) {
         Node root = Node(nullptr, ray, scene);
         Node* next = &root;
@@ -55,19 +68,38 @@ private:
     }
 
     void createNewRayNodes(Node* current_node, int depth){
-        if(current_node->ray.intersection->material->type == LAMBERTIAN
-           || current_node->ray.intersection->material->type == OREN_NAYAR
-           || depth >= MAX_DEPTH)
-            return;
 
-        current_node->reflected = new Node(current_node, getReflectedRay(current_node->ray), scene);
-        createNewRayNodes(current_node->reflected, depth + 1);
+        int material_type = current_node->ray.intersection->material->type;
 
-        if(current_node->ray.intersection->material->type == TRANSPARENT) {
-            float n1 = 0.f, n2 = 0.f;
-            current_node->refracted = new Node(current_node, getRefractedRay(current_node->ray, n1, n2), scene);
-            current_node->calculateRadianceDistribution(n1, n2);
-            createNewRayNodes(current_node->refracted, depth+1);
+        // Russian Roulette
+        if(material_type == LAMBERTIAN || material_type == OREN_NAYAR){
+            float random = std::rand()/RAND_MAX;
+            float terminationProbability = (depth != 0) ? 1.f : 0.0f;
+            if(random < terminationProbability)
+                 return;
+        }
+
+        float n1 = 0.f, n2 = 0.f;
+        Ray refractedRay = Ray();
+        switch(material_type){
+            case PERFECT_REFLECTOR:
+                current_node->reflected = new Node(current_node, getPerfectReflectedRay(current_node->ray), scene);
+                createNewRayNodes(current_node->reflected, depth + 1);
+                break;
+            case TRANSPARENT:
+                current_node->reflected = new Node(current_node, getPerfectReflectedRay(current_node->ray), scene);
+                createNewRayNodes(current_node->reflected, depth + 1);
+
+                if(!getRefractedRay(current_node->ray, n1, n2, refractedRay))
+                    break;
+                current_node->refracted = new Node(current_node, refractedRay, scene);
+                current_node->calculateRadianceDistribution(n1, n2);
+                createNewRayNodes(current_node->refracted, depth + 1);
+                break;
+            default :
+                current_node->reflected = new Node(current_node, getRandomReflectedRay(current_node->ray), scene);
+                createNewRayNodes(current_node->reflected, depth + 1);
+                break;
         }
     }
 
@@ -85,41 +117,63 @@ private:
     }
 
     glm::vec3 calculateLight(Node* currentNode) {
-        glm::vec3 reflectedLight = glm::vec3(0.f), refractedLight = glm::vec3(0.f), currentLight = glm::vec3(0.f);
-
-        if(currentNode->reflectionCoefficient > 1.f)
-            std::cout << currentNode->reflectionCoefficient << std::endl;
+        glm::vec3 reflectedLight = glm::vec3(0.f),
+                  refractedLight = glm::vec3(0.f);
+        float refCoeff = currentNode->reflectionCoefficient;
 
         if(currentNode->reflected != nullptr)
-            reflectedLight = currentNode->reflectionCoefficient * calculateLight(currentNode->reflected);
+            reflectedLight = refCoeff * calculateLight(currentNode->reflected);
         if(currentNode->refracted != nullptr)
-            refractedLight = (1-currentNode->reflectionCoefficient) * calculateLight(currentNode->refracted);
+            refractedLight = (1 - refCoeff) * calculateLight(currentNode->refracted);
 
-        if (currentNode->ray.intersection->material->type == LIGHT) {
-            ColorDbl lightColor = currentNode->ray.intersection->material->color;
-            return glm::vec3(lightColor.r, lightColor.g, lightColor.b);
-        }
-        
-        currentLight = reflectedLight + refractedLight;
+        int matType = currentNode->ray.intersection->material->type;
+        if (matType == LIGHT)
+            return glm::vec3(1.f);
 
+        glm::vec3 brdf = currentNode->ray.intersection->material->
+                getBRDF(*currentNode->ray.intersection, currentNode->parent->ray.direction, currentNode->ray.direction);
+
+        glm::vec3 indirectLight = glm::vec3(0.f),
+                  directLight = glm::vec3(0.f);
+        indirectLight = (reflectedLight + refractedLight) * brdf;
 
         // Calculate the contribution from the direct lighting
-        if(currentNode->ray.intersection->material->type != PERFECT_REFLECTOR) {
-            ColorDbl currentColorDbl = currentNode->ray.intersection->material->color;
-            glm::vec3 currentColor = glm::vec3(currentColorDbl.r, currentColorDbl.g, currentColorDbl.b);
+        if(matType != PERFECT_REFLECTOR && matType != TRANSPARENT)
+            directLight = calculateDirectLight(&currentNode->ray);
 
-            glm::vec3 directLight = calculateDirectLight(&currentNode->ray);
-
-            currentLight += (currentColor * directLight);
-        }
-
-        return currentLight;
+        return (indirectLight + directLight);
     }
 
-    // TODO: Introduce Monte Carlo scheme by using random directions (slide 209)
-    Ray getReflectedRay(Ray &incomingRay) {
-        // TODO: Introduce Monte Carlo scheme by using random directions (slide 209) if glossy surface
+    Ray getRandomReflectedRay(Ray &incomingRay) {
+        glm::vec3 offset = 0.00001f * incomingRay.intersection->normal.vector;
+        Vertex reflectedRayOrigin = Vertex(incomingRay.intersection->position.position + offset);
 
+        Intersection intersection = *incomingRay.intersection;
+
+        glm::vec3 helper = intersection.normal.vector + glm::vec3(1.f,1.f,1.f); // Basically only used to get a tangent
+        glm::vec3 tangent = glm::normalize(glm::cross(intersection.normal.vector, helper));
+
+        float rand1 = (*dis)(*gen);
+        float rand2 = (*dis)(*gen);
+
+        // Uniform distribution over a hemisphere
+        float inclination = (float)acos(sqrt(rand1));
+        float azimuth = (2.f * (float)M_PI * rand2);
+
+        // Change the actual vector
+        glm::vec3 random_direction = intersection.normal.vector;
+        random_direction = glm::normalize(glm::rotate(
+                random_direction,
+                inclination,
+                tangent));
+        random_direction = glm::normalize(glm::rotate(
+                random_direction,
+                azimuth,
+                intersection.normal.vector));
+        return Ray(reflectedRayOrigin, Direction(random_direction));
+    }
+
+    Ray getPerfectReflectedRay(Ray &incomingRay) {
         glm::vec3 reflectedDir = glm::reflect(incomingRay.direction.vector, incomingRay.intersection->normal.vector);
 
         glm::vec3 offset = 0.00001f * incomingRay.intersection->normal.vector;
@@ -128,39 +182,39 @@ private:
         return Ray(reflectedRayOrigin, Direction(reflectedDir));
     }
 
-    Ray getRefractedRay(Ray &incomingRay, float &n1, float &n2) {
+    bool getRefractedRay(Ray &incomingRay, float &n1, float &n2, Ray& outgoingRay) {
         n1 = 1.0; // AIR
         n2 = incomingRay.intersection->material->refractionIndex;
 
         glm::vec3 surfaceNormal = incomingRay.intersection->normal.vector;
-        glm::vec3 offset = 0.00001f * surfaceNormal;
 
         // Check if we are inside of the object or outside, swap if we are inside
-        float angle = glm::angle(incomingRay.direction.vector, surfaceNormal);
-        if(angle < glm::pi<float>()/2.f){
-            surfaceNormal*= -1.f;
-            offset *= -1.f;
+        float angle = glm::angle(surfaceNormal, incomingRay.direction.vector);
+        if (angle > (float) M_PI/2.f) {
+            surfaceNormal *= -1.f;
             std::swap(n1,n2);
         }
 
-        // TODO: CHANGE THIS! IF THE ANGLE IS TOO LARGE, THERE SHOULD BE NO REFRACTION RAY
-        /*if(n1 > n2){
-            float brewsterAngle = glm::asin(n2 / n1);
-            float alpha = glm::angle(incomingRay.direction.vector, surfaceNormal);
-            if(alpha > brewsterAngle)
-                return Ray();
-        }*/
+        if (n1 > n2) {
+            float brewsterangle = glm::asin(n2/n1);
+            angle = glm::angle(surfaceNormal, incomingRay.direction.vector);
+            if (angle > brewsterangle)
+                return false;
+        }
 
-        float refractionRatio = n1/n2;
+        float refractionRatio = n1 /n2;
         glm::vec3 refractedRay = refract(incomingRay.direction.vector, surfaceNormal, refractionRatio);
+
+        glm::vec3 offset = 0.00001f * surfaceNormal;
         Vertex refractedRayOrigin = Vertex(incomingRay.intersection->position.position + offset);
 
-        return Ray(refractedRayOrigin, Direction(refractedRay));
+        outgoingRay = Ray(refractedRayOrigin, Direction(refractedRay));
+        return true;
     }
 
     glm::vec3 calculateDirectLight(Ray* ray) {
         glm::vec3 allLightsContributions = glm::vec3(0.0);
-        int numRays = 10;
+        int numRays = 2;
 
         for (auto iterator = scene->lightBegin(); iterator != scene->lightEnd(); ++iterator) {
             glm::vec3 singleLightContribution = glm::vec3(0.0);
