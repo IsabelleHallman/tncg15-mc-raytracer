@@ -6,15 +6,29 @@
 #include <list>
 #include <iostream>
 #include <vector>
+#include <chrono>
+
 
 Scene generateTestScene();
 
 int main() {
+    auto startTime = std::chrono::system_clock::now();
     Scene myScene = generateTestScene();
 
     Camera camera = Camera(&myScene);
     camera.render();
     camera.createImage();
+
+    auto endTime = std::chrono::system_clock::now();
+    std::chrono::duration<double> diffTime = endTime - startTime;
+
+    int timeInTakenInSec = (int)diffTime.count();
+
+    int minutes = timeInTakenInSec / 60;
+    int seconds = timeInTakenInSec % 60;
+
+    std::cout << minutes << " minutes and " << seconds << " seconds";
+
     return 0;
 }
 
@@ -89,8 +103,8 @@ Scene generateTestScene() {
     std::list<Triangle> sceneTriangles = {
             Triangle(sceneVertices.at(1), sceneVertices.at(2), sceneVertices.at(0), scene.getMaterial(redIndex)),
             Triangle(sceneVertices.at(1), sceneVertices.at(3), sceneVertices.at(2), scene.getMaterial(redIndex)),
-            Triangle(sceneVertices.at(2), sceneVertices.at(3), sceneVertices.at(4), scene.getMaterial(greenIndex)),
-            Triangle(sceneVertices.at(4), sceneVertices.at(3), sceneVertices.at(5), scene.getMaterial(greenIndex)),
+            Triangle(sceneVertices.at(2), sceneVertices.at(3), sceneVertices.at(4), scene.getMaterial(mirrorMaterialIndex)),
+            Triangle(sceneVertices.at(4), sceneVertices.at(3), sceneVertices.at(5), scene.getMaterial(mirrorMaterialIndex)),
             Triangle(sceneVertices.at(4), sceneVertices.at(5), sceneVertices.at(6), scene.getMaterial(blueIndex)),
             Triangle(sceneVertices.at(6), sceneVertices.at(5), sceneVertices.at(7), scene.getMaterial(blueIndex)),
             Triangle(sceneVertices.at(6), sceneVertices.at(7), sceneVertices.at(8), scene.getMaterial(yellowIndex)),
@@ -116,24 +130,21 @@ Scene generateTestScene() {
     scene.addWalls(sceneTriangles);
 
     // Tetrahedron Objects
-    Vertex tetraPosition = Vertex(glm::vec3(8.0, 0.0, 0.0));
+    Vertex tetraPosition = Vertex(glm::vec3(9.0, -2.0, 1.0));
     scene.addTetrahedron(tetraPosition, scene.getMaterial(tetraMaterialIndex));
 
-    Vertex tetraPosition2 = Vertex(glm::vec3(8.0, 0.0, 0.0));
-    //scene.addTetrahedron(tetraPosition2, scene.getMaterial(mirrorMaterialIndex));
-
     //Box objects
-    Vertex boxPosition = Vertex(glm::vec3(6.0, -2.0, -5.0));
-    scene.addBox(boxPosition, scene.getMaterial(tetraMaterialIndex), 1.0, 1.0, 1.0);
+    Vertex boxPosition = Vertex(glm::vec3(6.0, -4.0, -5.0));
+    scene.addBox(boxPosition, scene.getMaterial(redIndex), 3.0, 3.0, 3.0);
 
     // Implicit spheres
-    Vertex centerOfSphere = Vertex(glm::vec3(6.f, -4.f, -3.f));
-    scene.addImplicitSphere(1.0, centerOfSphere, scene.getMaterial(transparentIndex));
+    Vertex centerOfSphere = Vertex(glm::vec3(6.f, -4.f, 3.f));
+    scene.addImplicitSphere(0.5, centerOfSphere, scene.getMaterial(mirrorMaterialIndex));
 
-    Vertex centerOfSphere2 = Vertex(glm::vec3(6.f, 3.f, 2.f));
-    //scene.addImplicitSphere(1.0, centerOfSphere2, scene.getMaterial(sphereMaterialIndex));
+    Vertex centerOfSphere2 = Vertex(glm::vec3(8.f, 3.f, 2.f));
+    scene.addImplicitSphere(1.2, centerOfSphere2, scene.getMaterial(greenIndex));
 
-    Vertex centerOfSphere3 = Vertex(glm::vec3(7.f, 1.f, -2.f));
+    Vertex centerOfSphere3 = Vertex(glm::vec3(6.f, 3.f, -2.f));
     scene.addImplicitSphere(1.0, centerOfSphere3, scene.getMaterial(mirrorMaterialIndex));
 
     Vertex l0 = Vertex(5.0, -2.0f, 4.99, 1.0);
@@ -146,7 +157,7 @@ Scene generateTestScene() {
     Vertex l1Top = Vertex(7.0f, 0.0, 4.995, 1.0);
     Vertex l2Top = Vertex(5.0, 2.0f, 4.995, 1.0);
     Triangle lightTriangleTop = Triangle(l0Top, l1Top, l2Top, scene.getMaterial(lightIndex));
-    scene.addLight(lightTriangleTop, whiteColor);
+    //scene.addLight(lightTriangleTop, whiteColor);
 
 
     Vertex l3 = Vertex(1.0, -3.0f, 4.95, 1.0);
@@ -165,7 +176,7 @@ Scene generateTestScene() {
     Vertex l10 = Vertex(7.0f, 0.0, -4.9f, 1.0);
     Vertex l11 = Vertex(5.0, 2.0f, -4.9f, 1.0);
     Triangle lightTriangle4 = Triangle(l9, l11, l10, scene.getMaterial(lightIndex));
-    scene.addLight(lightTriangle4, whiteColor);
+    //scene.addLight(lightTriangle4, whiteColor);
 
     return scene;
 }
