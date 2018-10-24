@@ -166,8 +166,7 @@ private:
 
         Intersection intersection = *incomingRay.intersection;
 
-        glm::vec3 helper = intersection.normal.vector + glm::vec3(1.f,1.f,1.f); // Basically only used to get a tangent
-        glm::vec3 tangent = glm::normalize(glm::cross(intersection.normal.vector, helper));
+        glm::vec3 tangent = intersection.axisX.vector;
 
         float rand1 = (*dis)(*gen);
         float rand2 = (*dis)(*gen);
