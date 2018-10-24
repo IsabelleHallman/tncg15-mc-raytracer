@@ -91,7 +91,7 @@ private:
     std::list<Light> lights;
 
     std::vector<Material> materials;
-    LambertianMaterial defaultMaterial;
+    Material defaultMaterial;
 };
 
 
