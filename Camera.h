@@ -86,9 +86,6 @@ public:
                     v.position.y += param_y*pixelSize;
                     v.position.z += param_z*pixelSize;
 
-                    if(x == 158 && y == 573)
-                        std::cout << "HEJ";
-
                     thisRay = Ray(v, Direction(v.position - activeEye->position));
                     finalColor += rayTrace.trace(thisRay);
                 }
