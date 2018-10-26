@@ -74,7 +74,7 @@ private:
         // Russian Roulette
         if(material_type == LAMBERTIAN || material_type == OREN_NAYAR){
             float random = std::rand()/RAND_MAX;
-            float terminationProbability = (depth != 0) ? 1.f : 0.0f;
+            float terminationProbability = (depth != 0) ? 0.2f : 0.0f;
             if(random < terminationProbability)
                  return;
         }
